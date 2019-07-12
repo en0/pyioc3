@@ -17,7 +17,7 @@ setup(
     packages=["pyioc"],
     classifiers=[
         "Programming Language :: Python :: 3.5",
-        "License :: BEER-WARE",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
 )
