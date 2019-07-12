@@ -1,12 +1,12 @@
-# pyioc
+# pyioc3
 
 A fast and simple IOC Container for Python.
 
 # About
 
-pyioc is a fast and simple inversion of control (ioc) container
+pyioc3 is a fast and simple inversion of control (ioc) container
 for python.  An IoC container uses class constructor (or in this case
-__init__ method parameters) to build and inject dependencies. pyioc 
+__init__ method parameters) to build and inject dependencies. pyioc3 
 takes advantage of python's type hint annotations to make injection
 flexible and easy to use.
 
@@ -19,20 +19,20 @@ this to help enforce SOLID and make my programs better.
 
 Simple. Simple. Simple. Python is already flexible. An IOC container
 is something that you could whip up to suite your needs in an
-afternoon. Or you could install pyioc instead.
+afternoon. Or you could install pyioc3 instead.
 
 # Quick Start
 
 Install the package
 
 ```bash
-pip install --user pyioc
+pip install --user pyioc3
 ```
 
 Make an ioc.py
 
 ```python
-from pyioc import StaticContainerBuilder
+from pyioc3 import StaticContainerBuilder
 from .ducks import Duck, RubberDucky
 from .quacks import QuackBehavior, Squeak
 
