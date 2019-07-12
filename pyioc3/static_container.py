@@ -1,8 +1,8 @@
 from collections import deque
 
-from pyioc.scope_enum import ScopeEnum
-from pyioc.bound_member import BoundMember
-from pyioc.scope_container import PersistentScope, ScopeContainer
+from pyioc3.scope_enum import ScopeEnum
+from pyioc3.bound_member import BoundMember
+from pyioc3.scope_container import PersistentScope, ScopeContainer
 
 
 class StaticContainer:

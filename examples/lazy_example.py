@@ -1,4 +1,4 @@
-from pyioc import StaticContainerBuilder
+from pyioc3 import StaticContainerBuilder
 
 
 class Squeak:

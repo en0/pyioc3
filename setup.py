@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 
 setup(
-    name="pyioc",
+    name="pyioc3",
     version="1.0",
     description="Python IOC Container",
     long_description=long_description,
@@ -14,7 +14,7 @@ setup(
     author="Ian Laird",
     author_email="irlaird@gmail.com",
     url="https://github.com/en0/pyioc",
-    packages=["pyioc"],
+    packages=["pyioc3"],
     classifiers=[
         "Programming Language :: Python :: 3.5",
         "License :: OSI Approved :: MIT License",

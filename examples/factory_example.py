@@ -1,4 +1,4 @@
-from pyioc import StaticContainerBuilder, StaticContainer
+from pyioc3 import StaticContainerBuilder, StaticContainer
 
 ioc_builder = StaticContainerBuilder()
 

@@ -1,7 +1,7 @@
-from pyioc.adapters import FactoryAsImplAdapter, ValueAsImplAdapter
-from pyioc.bound_member import BoundMember
-from pyioc.scope_enum import ScopeEnum
-from pyioc.static_container import StaticContainer
+from pyioc3.adapters import FactoryAsImplAdapter, ValueAsImplAdapter
+from pyioc3.bound_member import BoundMember
+from pyioc3.scope_enum import ScopeEnum
+from pyioc3.static_container import StaticContainer
 
 
 class StaticContainerBuilder:

@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from pyioc import StaticContainerBuilder
+from pyioc3 import StaticContainerBuilder
 
 
 class QuackBehavior(metaclass=ABCMeta):

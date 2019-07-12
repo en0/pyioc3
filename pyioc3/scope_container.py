@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
-from pyioc.scope_enum import ScopeEnum
-from pyioc.bound_member import BoundMember
+from pyioc3.scope_enum import ScopeEnum
+from pyioc3.bound_member import BoundMember
 
 
 class Scope(metaclass=ABCMeta):

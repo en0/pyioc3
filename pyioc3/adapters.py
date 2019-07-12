@@ -1,4 +1,4 @@
-from pyioc.static_container import StaticContainer
+from pyioc3.static_container import StaticContainer
 
 
 class ValueAsImplAdapter:
