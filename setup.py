@@ -6,5 +6,6 @@ setup(
     description="Python IOC Container",
     author="Ian Laird",
     author_email="irlaird@gmail.com",
-    packages=["pyioc"]
+    url="https://github.com/en0/pyioc",
+    packages=["pyioc"],
 )
