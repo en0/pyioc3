@@ -1,3 +1,5 @@
+from collections import deque
+
 from pyioc3.adapters import FactoryAsImplAdapter, ValueAsImplAdapter
 from pyioc3.bound_member import BoundMember
 from pyioc3.scope_enum import ScopeEnum
@@ -121,4 +123,29 @@ class StaticContainerBuilder:
             for annotation in bound_member.parameters:
                 bound_member.depends_on.append(self._bound_members[annotation])
 
+        self._assert_acyclic()
+
         return container
+
+    def _assert_acyclic(self):
+
+        def _find_cycle(root: BoundMember):
+            visited = set()
+            stack = deque()
+            stack.append((root, 0))
+            while len(stack):
+                v, s = stack.pop()
+                if s == 0 and v in visited:
+                    return visited
+                elif s == 0:
+                    visited.add(v)
+                    stack.append((v, 1))
+                    [stack.append((v, 0)) for v in v.depends_on]
+                elif s == 1:
+                    visited.remove(v)
+            return None
+
+        for r in self._bound_members.values():
+            cycle = _find_cycle(r)
+            if cycle is not None:
+                raise Exception("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))
