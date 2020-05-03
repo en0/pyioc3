@@ -1,23 +1,23 @@
 from collections import deque
 
-from pyioc3.scope_enum import ScopeEnum
-from pyioc3.bound_member import BoundMember
-from pyioc3.scope_container import PersistentScope, ScopeContainer
+from .scope_enum import ScopeEnum
+from .bound_member import BoundMember
+from .scope_container import PersistentScope, ScopeContainer
+from .interface import Container
 
-class StaticContainer:
-    """A static ioc container"""
+
+class StaticContainer(Container):
 
     def __init__(self, bound_members):
         self._singletons = PersistentScope()
         self._bound_members = bound_members
 
     def _build_scope(self, requested_member: BoundMember):
-        """Add members to a scope.
 
-        Build a scope using a post-order traversal of the
-        dependency tree.  This will guarantee the scope has
-        all dependencies for each object it is given to build.
-        """
+        # Build a scope using a post-order traversal of the
+        # dependency tree.  This will guarantee the scope has
+        # all dependencies for each object it is given to build.
+
         scope = ScopeContainer(self._singletons)
         stack = deque()
         stack.append((requested_member, 0))
@@ -33,18 +33,6 @@ class StaticContainer:
         return scope
 
     def get(self, annotation):
-        """Retrieve an instance from the container
-
-        The instance will be produced according to it's scope. If the instance
-        is new, it's dependency chain will also be created according to their scope.
-
-        Arguments:
-            annotation:
-                The hint used to locate the member
-
-        Returns:
-            An object instance, constant, or function
-        """
         member = self._bound_members[annotation]
         scope = self._build_scope(member)
         return scope.get_instance_of(member)
