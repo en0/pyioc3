@@ -1,10 +1,10 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 from pyioc3.scope_enum import ScopeEnum
 from pyioc3.bound_member import BoundMember
 
 
-class Scope(metaclass=ABCMeta):
+class Scope(ABC):
 
     @abstractmethod
     def __contains__(self, item) -> bool:
