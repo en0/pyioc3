@@ -4,7 +4,6 @@ from pyioc3.scope_enum import ScopeEnum
 from pyioc3.bound_member import BoundMember
 from pyioc3.scope_container import PersistentScope, ScopeContainer
 
-
 class StaticContainer:
     """A static ioc container"""
 
@@ -13,6 +12,12 @@ class StaticContainer:
         self._bound_members = bound_members
 
     def _build_scope(self, requested_member: BoundMember):
+        """Add members to a scope.
+
+        Build a scope using a post-order traversal of the
+        dependency tree.  This will guarantee the scope has
+        all dependencies for each object it is given to build.
+        """
         scope = ScopeContainer(self._singletons)
         stack = deque()
         stack.append((requested_member, 0))
