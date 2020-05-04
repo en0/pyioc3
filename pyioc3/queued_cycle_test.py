@@ -1,22 +1,22 @@
 from collections import deque
-from typing import Set, Dict
+from typing import Set, Dict,List
 
 from .bound_member import BoundMember
 from .interface import CycleTest
 
 
 class QueuedCycleTest(CycleTest):
-    def has_cycle(self, bound_members: Dict[any, BoundMember]) -> bool:
+    def find_cycle(self, bound_members: Dict[any, BoundMember]) -> List[BoundMember]:
         """Check if a graph of bound members contains a cycle.
 
         Arguments:
         bound_members: A dict of BoundMembers.
         """
         for r in bound_members.values():
-            cycle = _find_cycle(r)
+            cycle = self._find_cycle(r)
             if cycle is not None:
-                return True
-        return False
+                return cycle
+        return []
 
     def _find_cycle(self, root: BoundMember) -> Set[BoundMember]:
         """Find a set of bound members that contain circular dependencies.
@@ -34,7 +34,7 @@ class QueuedCycleTest(CycleTest):
             elif s == 0:
                 visited.add(v)
                 stack.append((v, 1))
-                [stack.append((v, 0)) for v in v.depends_on]
+                [stack.append((d, 0)) for d in v]
             elif s == 1:
                 visited.remove(v)
         return None

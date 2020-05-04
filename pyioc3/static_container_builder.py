@@ -1,20 +1,25 @@
 from collections import deque
+from inspect import isclass
+from typing import Dict
 
 from .adapters import FactoryAsImplAdapter, ValueAsImplAdapter
 from .bound_member import BoundMember
-from .interface import ContainerBuilder, CycleTest, Container
+from .bound_member_factory import DefaultBoundMemberFactory
+from .errors import CircularDependencyError
+from .interface import ContainerBuilder, CycleTest, Container, BoundMemberFactory
 from .queued_cycle_test import QueuedCycleTest as DefaultCycleTest
 from .scope_enum import ScopeEnum
 from .static_container import StaticContainer
-from .utils import has_cycle
 
 
 class StaticContainerBuilder(ContainerBuilder):
     """Bind classes, values, functions, and factories to a container."""
 
     def __init__(self, cycle_test: CycleTest = None):
-        self._bound_members: dict = {}
-        self._cycle_test: CycleTest =  cycle_test or DefaultCycleTest()
+        self._bound_members: Dict[any, BoundMember] = {}
+        self._str_annotation_map: Dict[str, any] = {}
+        self._bound_member_factory: BoundMemberFactory = DefaultBoundMemberFactory()
+        self._cycle_test: CycleTest = cycle_test or DefaultCycleTest()
 
     def bind(self, annotation, implementation, scope: ScopeEnum = ScopeEnum.TRANSIENT):
         """Bind a class.
@@ -49,7 +54,15 @@ class StaticContainerBuilder(ContainerBuilder):
                 annotation="duck",
                 implementation=Duck)
         """
-        self._bound_members[annotation] = BoundMember(annotation, implementation, scope)
+
+        # This allows callers to use use quoted annotations in place of real types
+        if isclass(annotation):
+            self._str_annotation_map[annotation.__name__] = annotation 
+        # This allows binders to bind arbitrary strings to types
+        elif isinstance(annotation, str):
+            self._str_annotation_map[annotation] = annotation 
+
+        self._bound_members[annotation] = self._bound_member_factory.build(annotation, implementation, scope)
 
     def bind_constant(self, annotation, value):
         """Bind a constant value
@@ -123,31 +136,13 @@ class StaticContainerBuilder(ContainerBuilder):
 
         for bound_member in self._bound_members.values():
             for annotation in bound_member.parameters:
-                bound_member.depends_on.append(self._bound_members[annotation])
+                if isinstance(annotation, str):
+                    annotation = self._str_annotation_map[annotation]
+                bound_member.bind_dependant(self._bound_members[annotation])
 
-        self._assert_acyclic()
+        cycle = self._cycle_test.find_cycle(self._bound_members)
+
+        if cycle:
+            raise CircularDependencyError("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))
 
         return container
-
-    def _assert_acyclic(self):
-
-        def _find_cycle(root: BoundMember):
-            visited = set()
-            stack = deque()
-            stack.append((root, 0))
-            while len(stack):
-                v, s = stack.pop()
-                if s == 0 and v in visited:
-                    return visited
-                elif s == 0:
-                    visited.add(v)
-                    stack.append((v, 1))
-                    [stack.append((v, 0)) for v in v.depends_on]
-                elif s == 1:
-                    visited.remove(v)
-            return None
-
-        for r in self._bound_members.values():
-            cycle = _find_cycle(r)
-            if cycle is not None:
-                raise Exception("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))

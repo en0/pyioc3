@@ -27,7 +27,7 @@ class StaticContainer(Container):
                 continue
             elif s == 0:
                 stack.append((m, 1))
-                [stack.append((v, 0)) for v in m.depends_on]
+                [stack.append((v, 0)) for v in m]
             else:
                 scope.add(m)
         return scope

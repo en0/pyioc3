@@ -1,0 +1,2 @@
+class CircularDependencyError(RuntimeError):
+    pass

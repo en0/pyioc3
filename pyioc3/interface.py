@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 
 from .scope_enum import ScopeEnum
 from .bound_member import BoundMember
@@ -173,10 +173,27 @@ class ContainerBuilder(ABC):
 class CycleTest(ABC):
     """Test a graph of BoundMembers for circular dependencies."""
     @abstractmethod
-    def has_cycle(self, bound_members: Dict[any, BoundMember]) -> bool:
+    def find_cycle(self, bound_members: Dict[any, BoundMember]) -> List[BoundMember]:
         """Check graph of BoundMembers for cycles.
 
         Arguments:
           bound_members: The graph to test.
+        """
+        raise NotImplementedError()
+
+class BoundMemberFactory(ABC):
+    @abstractmethod
+    def build(
+        self,
+        annotation: any,
+        implementation: Callable,
+        scope: ScopeEnum
+    ) -> BoundMember:
+        """Create a new bound member.
+
+        Arguments:
+          annotation: The hint associated with this member
+          implementation: The implementation used for this member.
+          scope: The scope used to construct implementations for this member.
         """
         raise NotImplementedError()

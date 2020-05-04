@@ -48,7 +48,7 @@ class ScopeContainer:
 
     def _create_instance(self, member: BoundMember) -> object:
         args = list()
-        for dep in member.depends_on:
+        for dep in member:
             args.append(self.get_instance_of(dep))
         return member.implementation(*args)
 

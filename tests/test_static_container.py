@@ -3,32 +3,36 @@ from unittest.mock import MagicMock
 
 from pyioc3.static_container import StaticContainer
 from pyioc3.scope_enum import ScopeEnum
+from pyioc3.bound_member import BoundMember
 
 
 class StaticContainerTest(unittest.TestCase):
 
     def setUp(self):
 
-        foo1 = MagicMock()
-        foo1.annotation = "foo1"
-        foo1.parameters = []
-        foo1.depends_on = []
-        foo1.scope = ScopeEnum.TRANSIENT
-        foo1.implementation = object
+        foo1 = BoundMember(
+            annotation="foo1",
+            implementation=object,
+            scope=ScopeEnum.TRANSIENT,
+            parameters=[],
+        )
 
-        foo2 = MagicMock()
-        foo2.annotation = "foo2"
-        foo2.parameters = ["foo1"]
-        foo2.depends_on = [foo1]
-        foo2.scope = ScopeEnum.TRANSIENT
-        foo2.implementation = MagicMock()
+        foo2 = BoundMember(
+            annotation = "foo2",
+            implementation = MagicMock(),
+            scope = ScopeEnum.TRANSIENT,
+            parameters = ["foo1"],
+        )
 
-        foo3 = MagicMock()
-        foo3.annotation = "foo3"
-        foo3.parameters = ["foo1"]
-        foo3.depends_on = [foo1]
-        foo3.scope = ScopeEnum.TRANSIENT
-        foo3.implementation = MagicMock()
+        foo3 = BoundMember(
+            annotation = "foo3",
+            implementation = MagicMock(),
+            scope = ScopeEnum.TRANSIENT,
+            parameters = ["foo1"],
+        )
+
+        foo2.bind_dependant(foo1)
+        foo3.bind_dependant(foo1)
 
         self.members = {f.annotation: f for f in [ foo1, foo2, foo3 ]}
         self.container = StaticContainer(self.members)
@@ -80,7 +84,7 @@ class StaticContainerTest(unittest.TestCase):
     def test_injected_deps_are_the_same_when_requested_in_same_tree(self):
         self.members["foo1"].scope = ScopeEnum.REQUESTED
         self.members["foo3"].parameters = ["foo1", "foo2"]
-        self.members["foo3"].depends_on = [self.members["foo1"], self.members["foo2"]]
+        self.members["foo3"].bind_dependant(self.members["foo2"])
         self.container.get("foo3")
         foo2_args = self.members["foo2"].implementation.call_args
         foo3_args = self.members["foo3"].implementation.call_args
