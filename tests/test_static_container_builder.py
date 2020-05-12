@@ -1,9 +1,10 @@
-import unittest
-from unittest.mock import Mock, patch
-
+from pyioc3.errors import CircularDependencyError
+from pyioc3.interface import Container
 from pyioc3.static_container_builder import StaticContainerBuilder
+from unittest.mock import Mock, patch
+import unittest
+
 from .fixtures import (
-    Circle,
     DuckA,
     DuckInterface,
     HalfCircle1,
@@ -15,19 +16,13 @@ from .fixtures import (
 
 class StaticContainerTest(unittest.TestCase):
 
-
     def setUp(self):
         self.builder = StaticContainerBuilder()
-
-    def test_raises_if_cycle(self):
-        self.builder.bind(Circle, Circle)
-        with self.assertRaises(Exception):
-            self.builder.build()
 
     def test_raises_if_deep_cycle(self):
         self.builder.bind(HalfCircle1, HalfCircle1)
         self.builder.bind(HalfCircle2, HalfCircle2)
-        with self.assertRaises(Exception):
+        with self.assertRaises(CircularDependencyError):
             self.builder.build()
 
     def test_raises_if_any_cycle(self):
@@ -35,7 +30,7 @@ class StaticContainerTest(unittest.TestCase):
         self.builder.bind(QuackBehavior, Sqeak)
         self.builder.bind(HalfCircle1, HalfCircle1)
         self.builder.bind(HalfCircle2, HalfCircle2)
-        with self.assertRaises(Exception):
+        with self.assertRaises(CircularDependencyError):
             self.builder.build()
 
     @patch("pyioc3.static_container_builder.StaticContainer")
@@ -45,16 +40,14 @@ class StaticContainerTest(unittest.TestCase):
         container = self.builder.build()
         container_mock.assert_called()
 
-
     @patch("pyioc3.static_container_builder.StaticContainer")
     def test_builds_container_with_initialized_dep_graph(self, container_mock):
         self.builder.bind(DuckInterface, DuckA)
         self.builder.bind(QuackBehavior, Sqeak)
         container = self.builder.build()
         members, *_ = container_mock.call_args[0]
-        dep, = members[DuckInterface].depends_on
+        dep, = list(members[DuckInterface])
         self.assertEqual(QuackBehavior, dep.annotation)
-
 
     @patch("pyioc3.static_container_builder.StaticContainer")
     def test_builds_container_with_members(self, container_mock):
@@ -65,7 +58,6 @@ class StaticContainerTest(unittest.TestCase):
         self.assertIn(DuckInterface, members)
         self.assertIn(QuackBehavior, members)
 
-
     @patch("pyioc3.static_container_builder.StaticContainer")
     def test_builds_with_static_container(self, container_mock):
         self.builder.bind(DuckInterface, DuckA)
@@ -73,3 +65,11 @@ class StaticContainerTest(unittest.TestCase):
         container = self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(container_mock, members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_builds_with_static_container_as_container_interface(self, container_mock):
+        self.builder.bind(DuckInterface, DuckA)
+        self.builder.bind(QuackBehavior, Sqeak)
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn(Container, members)

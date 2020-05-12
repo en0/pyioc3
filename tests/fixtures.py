@@ -41,10 +41,6 @@ def duck_d(squeak: QuackBehavior):
     return DuckA(squeak)
 
 
-class Circle:
-    def __init__(self, c: "Circle"):
-        pass
-
 class HalfCircle1:
     def __init__(self, c: "HalfCircle2"):
         pass

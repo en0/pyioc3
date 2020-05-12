@@ -1,34 +1,43 @@
 from collections import deque
+from inspect import isclass
+from typing import Dict
 
-from pyioc3.adapters import FactoryAsImplAdapter, ValueAsImplAdapter
-from pyioc3.bound_member import BoundMember
-from pyioc3.scope_enum import ScopeEnum
-from pyioc3.static_container import StaticContainer
+from .adapters import FactoryAsImplAdapter, ValueAsImplAdapter
+from .bound_member import BoundMember
+from .bound_member_factory import DefaultBoundMemberFactory
+from .errors import CircularDependencyError
+from .interface import ContainerBuilder, CycleTest, Container, BoundMemberFactory
+from .queued_cycle_test import QueuedCycleTest as DefaultCycleTest
+from .scope_enum import ScopeEnum
+from .static_container import StaticContainer
 
 
-class StaticContainerBuilder:
-    """Bind classes, values, functions, and factories to a static container."""
+class StaticContainerBuilder(ContainerBuilder):
+    """Bind classes, values, functions, and factories to a container."""
 
-    _bound_members: dict = {}
+    def __init__(self, cycle_test: CycleTest = None):
+        self._bound_members: Dict[any, BoundMember] = {}
+        self._str_annotation_map: Dict[str, any] = {}
+        self._bound_member_factory: BoundMemberFactory = DefaultBoundMemberFactory()
+        self._cycle_test: CycleTest = cycle_test or DefaultCycleTest()
 
     def bind(self, annotation, implementation, scope: ScopeEnum = ScopeEnum.TRANSIENT):
-        """Bind a class
+        """Bind a class.
 
-        This allows you to bind any callable type to an annotation. Dependencies will be
+        Bind any callable type to an annotation. Dependencies will be
         injected into this object as needed when created.
 
         Scoping can be set to control reuse.
 
         Arguments:
-            annotation:
-                The hint used to inject an instance of implementation
+          annotation:     The hint used to inject an instance of implementation
 
-            implementation:
-                A callable type who's result will be stored return and stored according to the scope
+          implementation: A callable type who's result will be stored return and
+                          stored according to the scope
 
-            scope:
-                Identifies how the object should be cached. Options are Transient, Requested, Singleton
-                Default: Transient.
+          scope:          Identifies how the object should be cached. Options are
+                          Transient, Requested, Singleton
+                          Default: Transient.
 
         Scopes:
             Transient scopes and not cached.
@@ -45,7 +54,15 @@ class StaticContainerBuilder:
                 annotation="duck",
                 implementation=Duck)
         """
-        self._bound_members[annotation] = BoundMember(annotation, implementation, scope)
+
+        # This allows callers to use use quoted annotations in place of real types
+        if isclass(annotation):
+            self._str_annotation_map[annotation.__name__] = annotation 
+        # This allows binders to bind arbitrary strings to types
+        elif isinstance(annotation, str):
+            self._str_annotation_map[annotation] = annotation 
+
+        self._bound_members[annotation] = self._bound_member_factory.build(annotation, implementation, scope)
 
     def bind_constant(self, annotation, value):
         """Bind a constant value
@@ -53,11 +70,8 @@ class StaticContainerBuilder:
         This allows you to bind any object to an annotation in a singleton scope.
 
         Arguments:
-            annotation:
-                The hint used to inject the constant
-
-            value:
-                Any value. Object, function, type, anything.
+          annotation: The hint used to inject the constant
+          value: Any value. Object, function, type, anything.
 
         Example:
 
@@ -78,14 +92,12 @@ class StaticContainerBuilder:
         to the container. This lets you make runtime decision about how to create an instance.
 
         Arguments:
-            annotation:
-                The hint used to inject the factory
-
-            factory:
-                A higher order function that accepts the StackContainer as an arugment.
+          annotation: The hint used to inject the factory
+          factory:    A higher order function that accepts the StackContainer as an
+                      arugment.
 
         Example:
-            def my_factory_wrapper(ctx: StaticContainer)
+            def my_factory_wrapper(ctx: Container)
 
                 def my_factory(foo):
                     bar = ctx.get("bar")
@@ -103,49 +115,34 @@ class StaticContainerBuilder:
             FactoryAsImplAdapter(factory),
             scope=ScopeEnum.SINGLETON)
 
-    def build(self) -> StaticContainer:
+    def build(self) -> Container:
         """Compute dependency graph and return the container
 
-        This call will roll over all the objects and compute the dependants of each member. The container
-        itself is also added to the graph and can thus be injected using it's Type as the annotation.
+        This call will roll over all the objects and compute the dependants of each
+        member. The container itself is also added to the graph and can thus be
+        injected using it's Type as the annotation.
 
         Example:
             ioc_builder = StaticContainerBuilder()
             ioc = ioc_builder.build()
-            container = ioc.get(StaticContainer)
+            container = ioc.get(Container)
             container == ioc ## True
         """
-
         container = StaticContainer(self._bound_members)
+        self.bind_constant(Container, container)
+
+        # This is here for backwards compatability
         self.bind_constant(StaticContainer, container)
 
         for bound_member in self._bound_members.values():
             for annotation in bound_member.parameters:
-                bound_member.depends_on.append(self._bound_members[annotation])
+                if isinstance(annotation, str):
+                    annotation = self._str_annotation_map[annotation]
+                bound_member.bind_dependant(self._bound_members[annotation])
 
-        self._assert_acyclic()
+        cycle = self._cycle_test.find_cycle(self._bound_members)
+
+        if cycle:
+            raise CircularDependencyError("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))
 
         return container
-
-    def _assert_acyclic(self):
-
-        def _find_cycle(root: BoundMember):
-            visited = set()
-            stack = deque()
-            stack.append((root, 0))
-            while len(stack):
-                v, s = stack.pop()
-                if s == 0 and v in visited:
-                    return visited
-                elif s == 0:
-                    visited.add(v)
-                    stack.append((v, 1))
-                    [stack.append((v, 0)) for v in v.depends_on]
-                elif s == 1:
-                    visited.remove(v)
-            return None
-
-        for r in self._bound_members.values():
-            cycle = _find_cycle(r)
-            if cycle is not None:
-                raise Exception("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))

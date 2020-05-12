@@ -1,23 +1,6 @@
-from abc import ABC, abstractmethod
-
-from pyioc3.scope_enum import ScopeEnum
-from pyioc3.bound_member import BoundMember
-
-
-class Scope(ABC):
-
-    @abstractmethod
-    def __contains__(self, item) -> bool:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def add(self, annotation, instance) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def use(self, annotation) -> object:
-        raise NotImplementedError()
-
+from .bound_member import BoundMember
+from .interface import Scope
+from .scope_enum import ScopeEnum
 
 class PersistentScope(Scope):
 
@@ -65,7 +48,7 @@ class ScopeContainer:
 
     def _create_instance(self, member: BoundMember) -> object:
         args = list()
-        for dep in member.depends_on:
+        for dep in member:
             args.append(self.get_instance_of(dep))
         return member.implementation(*args)
 
