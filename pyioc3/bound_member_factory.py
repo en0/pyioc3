@@ -1,22 +1,35 @@
-from inspect import signature
-from typing import Callable
+from inspect import signature, isclass
+from types import FunctionType, MethodType
+from typing import get_type_hints, Callable, Any
 
 from .bound_member import BoundMember
 from .scope_enum import ScopeEnum
+from .interface import BoundMemberFactory
 
 
-class DefaultBoundMemberFactory:
+class DefaultBoundMemberFactory(BoundMemberFactory):
 
     def build(
         self,
         annotation: any,
         implementation: Callable,
-        scope: ScopeEnum
+        scope: ScopeEnum,
     ) -> BoundMember:
-        params = signature(implementation).parameters
+
+        if isclass(implementation):
+            params = get_type_hints(implementation.__init__)
+        elif type(implementation) == FunctionType:
+            params = get_type_hints(implementation)
+        elif type(implementation) == MethodType:
+            params = get_type_hints(implementation)
+        elif hasattr(implementation, '__call__'):
+            params = get_type_hints(implementation.__call__)
+        else:
+            params = get_type_hints(implementation)
+
         return BoundMember(
             annotation=annotation,
             implementation=implementation,
             scope=scope,
-            parameters=[p.annotation for p in params.values()],
+            parameters=[p for k, p in params.items() if k != 'return'],
         )
