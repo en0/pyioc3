@@ -61,4 +61,3 @@ class BoundMemberTest(unittest.TestCase):
         factory = DefaultBoundMemberFactory()
         b = factory.build("foo", g['func'], ScopeEnum.TRANSIENT)
         self.assertListEqual(expected, b.parameters)
-

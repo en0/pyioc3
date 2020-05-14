@@ -89,3 +89,40 @@ class StaticContainerTest(unittest.TestCase):
         foo2_args = self.members["foo2"].implementation.call_args
         foo3_args = self.members["foo3"].implementation.call_args
         self.assertEqual(foo2_args[0][0], foo3_args[0][0])
+
+    def test_calls_on_activate(self):
+        self.members["foo1"].implementation = MagicMock(return_value="bar")
+        self.members["foo1"].on_activate = MagicMock(return_value="bar")
+        bar = self.container.get("foo1")
+        self.members["foo1"].on_activate.assert_called_with("bar")
+
+    def test_calls_on_activate_for_dep(self):
+        self.members["foo1"].scope = ScopeEnum.SINGLETON
+        self.members["foo1"].implementation = MagicMock(return_value="bar")
+        self.members["foo1"].on_activate = MagicMock(return_value="bar")
+        bar = self.container.get("foo2")
+        self.members["foo1"].on_activate.assert_called_with("bar")
+
+    def test_calls_on_activate_only_once_when_singleton(self):
+        self.members["foo1"].scope = ScopeEnum.SINGLETON
+        self.members["foo1"].implementation = MagicMock(return_value="bar")
+        self.members["foo1"].on_activate = MagicMock(return_value="bar")
+        bar = self.container.get("foo2")
+        bar = self.container.get("foo3")
+        self.members["foo1"].on_activate.assert_called_once_with("bar")
+
+    def test_calls_on_activate_only_once_when_requested_in_same_tree(self):
+        self.members["foo1"].scope = ScopeEnum.REQUESTED
+        self.members["foo1"].implementation = MagicMock(return_value="bar")
+        self.members["foo1"].on_activate = MagicMock(return_value="bar")
+        self.members["foo3"].bind_dependant(self.members["foo2"])
+        bar = self.container.get("foo3")
+        self.members["foo1"].on_activate.assert_called_once_with("bar")
+
+    def test_calls_on_activate_each_time_it_is_needed_when_transient(self):
+        self.members["foo1"].scope = ScopeEnum.TRANSIENT
+        self.members["foo1"].implementation = MagicMock(return_value="bar")
+        self.members["foo1"].on_activate = MagicMock(return_value="bar")
+        self.members["foo3"].bind_dependant(self.members["foo2"])
+        bar = self.container.get("foo3")
+        self.assertEqual(2, self.members["foo1"].on_activate.call_count)

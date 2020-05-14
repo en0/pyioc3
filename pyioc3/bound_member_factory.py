@@ -14,6 +14,7 @@ class DefaultBoundMemberFactory(BoundMemberFactory):
         annotation: any,
         implementation: Callable,
         scope: ScopeEnum,
+        on_activate: Callable[[Any], Any] = None,
     ) -> BoundMember:
 
         if isclass(implementation):
@@ -32,4 +33,5 @@ class DefaultBoundMemberFactory(BoundMemberFactory):
             implementation=implementation,
             scope=scope,
             parameters=[p for k, p in params.items() if k != 'return'],
+            on_activate=on_activate
         )
