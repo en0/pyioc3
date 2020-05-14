@@ -50,7 +50,7 @@ class ScopeContainer:
         args = list()
         for dep in member:
             args.append(self.get_instance_of(dep))
-        return member.implementation(*args)
+        return member.on_activate(member.implementation(*args))
 
     def _get_scope(self, member: BoundMember):
         return self._scopes[member.scope]

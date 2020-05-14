@@ -17,11 +17,16 @@ class StaticContainerBuilder(ContainerBuilder):
 
     def __init__(self, cycle_test: CycleTest = None):
         self._bound_members: Dict[any, BoundMember] = {}
-        self._str_annotation_map: Dict[str, any] = {}
         self._bound_member_factory: BoundMemberFactory = DefaultBoundMemberFactory()
         self._cycle_test: CycleTest = cycle_test or DefaultCycleTest()
 
-    def bind(self, annotation, implementation, scope: ScopeEnum = ScopeEnum.TRANSIENT):
+    def bind(
+        self,
+        annotation,
+        implementation,
+        scope: ScopeEnum = ScopeEnum.TRANSIENT,
+        on_activate = None,
+    ):
         """Bind a class.
 
         Bind any callable type to an annotation. Dependencies will be
@@ -39,6 +44,11 @@ class StaticContainerBuilder(ContainerBuilder):
                           Transient, Requested, Singleton
                           Default: Transient.
 
+          on_activate:    An optional function that will be called with the
+                          constructed implementation before it is used as a dep
+                          or given as the return in container.get()
+                          Default: None.
+
         Scopes:
             Transient scopes and not cached.
             Requested scopes are cached during the current execution of a container.get call.
@@ -54,15 +64,7 @@ class StaticContainerBuilder(ContainerBuilder):
                 annotation="duck",
                 implementation=Duck)
         """
-
-        # This allows callers to use use quoted annotations in place of real types
-        if isclass(annotation):
-            self._str_annotation_map[annotation.__name__] = annotation 
-        # This allows binders to bind arbitrary strings to types
-        elif isinstance(annotation, str):
-            self._str_annotation_map[annotation] = annotation 
-
-        self._bound_members[annotation] = self._bound_member_factory.build(annotation, implementation, scope)
+        self._bound_members[annotation] = self._bound_member_factory.build(annotation, implementation, scope, on_activate)
 
     def bind_constant(self, annotation, value):
         """Bind a constant value
@@ -136,8 +138,6 @@ class StaticContainerBuilder(ContainerBuilder):
 
         for bound_member in self._bound_members.values():
             for annotation in bound_member.parameters:
-                if isinstance(annotation, str):
-                    annotation = self._str_annotation_map[annotation]
                 bound_member.bind_dependant(self._bound_members[annotation])
 
         cycle = self._cycle_test.find_cycle(self._bound_members)

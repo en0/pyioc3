@@ -70,7 +70,8 @@ class ContainerBuilder(ABC):
         self,
         annotation: any,
         implementation: Callable,
-        scope: ScopeEnum = ScopeEnum.TRANSIENT
+        scope: ScopeEnum = ScopeEnum.TRANSIENT,
+        on_activate: Callable[[any], any] = None,
     ):
         """Bind a class.
 
@@ -88,6 +89,11 @@ class ContainerBuilder(ABC):
           scope:          Identifies how the object should be cached. Options are
                           Transient, Requested, Singleton
                           Default: Transient.
+
+          on_activate:    An optional function that will be called with the
+                          constructed implementation before it is used as a dep
+                          or given as the return in container.get()
+                          Default: None.
 
         Scopes:
             Transient scopes and not cached.
