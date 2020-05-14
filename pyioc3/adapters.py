@@ -1,4 +1,4 @@
-from .static_container import StaticContainer
+from .interface import Container
 
 
 class ValueAsImplAdapter:
@@ -26,6 +26,6 @@ class FactoryAsImplAdapter:
     def __init__(self, fn):
         self._fn = fn
 
-    def __call__(self, ctx: StaticContainer):
+    def __call__(self, ctx: Container):
         return self._fn(ctx)
 
