@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Iterator
-
+from typing import Generic, TypeVar, Iterator, Callable
 
 class DuckInterface(ABC):
     @abstractmethod
@@ -83,3 +82,6 @@ class MasterDuck(Singleton):
 class MetaMasterDuck(metaclass=Singleton):
     def __init__(self, quack: QuackBehavior):
         pass
+
+DuckFactory = Callable[[], DuckInterface]
+rubber_duck_factory = lambda ctx: lambda : DuckA(Sqeak())

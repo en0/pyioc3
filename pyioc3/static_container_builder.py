@@ -146,3 +146,46 @@ class StaticContainerBuilder(ContainerBuilder):
             raise CircularDependencyError("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))
 
         return container
+
+    def load(self, deps: list):
+        for binding in deps:
+            if "implementation" in binding:
+                self.bind(
+                    annotation=as_resource(binding["annotation"]),
+                    implementation=as_resource(binding["implementation"]),
+                    scope=as_scope(binding.get("scope")),
+                    on_activate=as_resource(binding.get("on_activate"))
+                )
+            elif "factory" in binding:
+                self.bind_factory(
+                    annotation=as_resource(binding["annotation"]),
+                    factory=as_resource(binding["factory"])
+                )
+            elif "value" in binding:
+                self.bind_constant(
+                    annotation=as_resource(binding["annotation"]),
+                    value=as_resource(binding["value"])
+                )
+
+
+from importlib import import_module, util
+
+def as_resource(spec) -> any:
+    if not isinstance(spec, str):
+        return spec
+    if spec.startswith("str("):
+        return str(spec[4:-1])
+    elif spec.startswith("int("):
+        return int(spec[4:-1])
+    elif spec.startswith("float("):
+        return float(spec[6:-1])
+    *pkg, res = spec.split(".")
+    mod = import_module(".".join(pkg))
+    return getattr(mod, res)
+
+def as_scope(spec) -> ScopeEnum:
+    if isinstance(spec, str):
+        return ScopeEnum[spec]
+    return spec
+
+

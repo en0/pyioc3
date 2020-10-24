@@ -11,6 +11,8 @@ from .fixtures import (
     HalfCircle2,
     QuackBehavior,
     Sqeak,
+    DuckFactory,
+    rubber_duck_factory,
 )
 
 
@@ -73,3 +75,69 @@ class StaticContainerTest(unittest.TestCase):
         container = self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(Container, members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_basic_bindings_from_dict(self, container_mock):
+        self.builder.load([
+            {"annotation": DuckInterface, "implementation": DuckA},
+            {"annotation": QuackBehavior, "implementation": Sqeak},
+        ])
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn(DuckInterface, members)
+        self.assertIn(QuackBehavior, members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_basic_bindings_from_dict_with_strings(self, container_mock):
+        self.builder.load([
+            {
+                "annotation": "tests.fixtures.DuckInterface",
+                "implementation": "tests.fixtures.DuckA"
+            },{
+                "annotation": "tests.fixtures.QuackBehavior",
+                "implementation": "tests.fixtures.Sqeak"
+            },
+        ])
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn(DuckInterface, members)
+        self.assertIn(QuackBehavior, members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_factory_bindings_from_dict(self, container_mock):
+        self.builder.load([
+            {"annotation": DuckFactory, "factory": rubber_duck_factory},
+        ])
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn(DuckFactory, members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_factory_bindings_from_dict_as_strings(self, container_mock):
+        self.builder.load([{
+            "annotation": "tests.fixtures.DuckFactory",
+            "factory": "tests.fixtures.rubber_duck_factory"
+        }])
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn(DuckFactory, members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_factory_bindings_from_dict_with_string_annotation(self, container_mock):
+        self.builder.load([{
+            "annotation": "str(MyDuckFactory)",
+            "factory": "tests.fixtures.rubber_duck_factory"
+        }])
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn("MyDuckFactory", members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_const_bindings_from_dict(self, container_mock):
+        self.builder.load([{
+            "annotation": "str(my_const)",
+            "value": 1
+        }])
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn("my_const", members)
