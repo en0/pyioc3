@@ -1,5 +1,6 @@
+from typing import Type
 from .bound_member import BoundMember
-from .interface import Scope
+from .interface import Scope, PROVIDER_T
 from .scope_enum import ScopeEnum
 
 class PersistentScope(Scope):
@@ -7,13 +8,13 @@ class PersistentScope(Scope):
     def __init__(self):
         self._cache = {}
 
-    def __contains__(self, annotation) -> bool:
+    def __contains__(self, annotation: Type[PROVIDER_T]) -> bool:
         return annotation in self._cache.keys()
 
-    def add(self, annotation, instance) -> None:
+    def add(self, annotation: Type[PROVIDER_T], instance: PROVIDER_T) -> None:
         self._cache[annotation] = instance
 
-    def use(self, annotation) -> object:
+    def use(self, annotation: Type[PROVIDER_T]) -> object:
         return self._cache[annotation]
 
 
@@ -22,10 +23,10 @@ class TransientScope(Scope):
     def __init__(self):
         self._cache = {}
 
-    def __contains__(self, annotation) -> bool:
+    def __contains__(self, annotation: Type[PROVIDER_T]) -> bool:
         return annotation in self._cache.keys()
 
-    def add(self, annotation, instance) -> None:
+    def add(self, annotation: Type[PROVIDER_T], instance: PROVIDER_T) -> None:
         if annotation in self:
             self._cache[annotation].append(instance)
         else:
@@ -46,20 +47,20 @@ class ScopeContainer:
             ScopeEnum.REQUESTED: PersistentScope(),
             ScopeEnum.TRANSIENT: TransientScope()}
 
-    def _create_instance(self, member: BoundMember) -> object:
+    def _create_instance(self, member: BoundMember) -> PROVIDER_T:
         args = list()
         for dep in member:
             args.append(self.get_instance_of(dep))
         return member.on_activate(member.implementation(*args))
 
-    def _get_scope(self, member: BoundMember):
+    def _get_scope(self, member: BoundMember) -> Scope:
         return self._scopes[member.scope]
 
     def has(self, member: BoundMember) -> bool:
         return member.annotation in self._get_scope(member)
 
-    def add(self, member: BoundMember):
+    def add(self, member: BoundMember) -> None:
         self._get_scope(member).add(member.annotation, self._create_instance(member))
 
-    def get_instance_of(self, member: BoundMember) -> object:
+    def get_instance_of(self, member: BoundMember) -> PROVIDER_T:
         return self._get_scope(member).use(member.annotation)

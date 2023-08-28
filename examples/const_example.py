@@ -1,12 +1,15 @@
 from pyioc3 import StaticContainerBuilder
+from typing import NewType
 
-ioc_builder = StaticContainerBuilder()
+HelloWorld = NewType("HelloWorld", str)
+GoodByeWorld = NewType("GoodByeWorld", str)
 
-ioc_builder.bind_constant(
-    annotation="my_constant",
-    value="hello, world")
+ioc = (
+    StaticContainerBuilder()
+    .bind_constant(HelloWorld, "Hello, World!")
+    .bind_constant(GoodByeWorld, "Good-bye, World!")
+    .build()
+)
 
-ioc = ioc_builder.build()
-
-value = ioc.get("my_constant")
-print(value)
+print(ioc.get(HelloWorld))
+print(ioc.get(GoodByeWorld))

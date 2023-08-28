@@ -1,7 +1,8 @@
 import unittest
 from typing import Callable
 
-from pyioc3.builder import BuilderBase, ProviderBinding, ConstantBinding, FactoryBinding
+from pyioc3.builder import BuilderBase
+from pyioc3.interface import ProviderBinding, ConstantBinding, FactoryBinding
 
 
 GreeterFactory = Callable[[str], str]
@@ -22,37 +23,37 @@ def eng_greeter_factory(ctx) -> GreeterFactory:
 
 class BuilderTest(unittest.TestCase):
 
-    def test_builder_with_provider_defaults(self):
-        foo = FooBuilder(providers=[ProviderBinding(Foo)]).build()
+    def test_builder(self):
+        foo = FooBuilder().build()
         assert isinstance(foo, Foo)
 
-    def test_builder_with_constant_defaults(self):
+    def test_builder_with_provider_and_constant_defaults(self):
 
         class Foo_Test(Foo):
             def __init__(self, c: str):
                 self.c = c
 
-        foo = FooBuilder(
-            providers=[ProviderBinding(Foo_Test, Foo)],
-            constants=[ConstantBinding("bar", str)]
-        ).build()
+        foo = FooBuilder([
+            ProviderBinding(Foo, Foo_Test),
+            ConstantBinding("bar", str),
+        ]).build()
         assert foo.c == "bar"
 
-    def test_builder_with_constant_factory(self):
+    def test_builder_with_provider_and_constant_and_factory_defaults(self):
 
         class Foo_Test(Foo):
             def __init__(self, name: str, greet: GreeterFactory):
                 self.greeting = greet(name)
 
-        foo = FooBuilder(
-            providers=[ProviderBinding(Foo_Test, Foo)],
-            constants=[ConstantBinding("world", str)],
-            factories=[FactoryBinding(eng_greeter_factory, GreeterFactory)]
-        ).build()
+        foo = FooBuilder([
+            ProviderBinding(Foo, Foo_Test),
+            ConstantBinding("world", str),
+            FactoryBinding(eng_greeter_factory, GreeterFactory)
+        ]).build()
 
         assert foo.greeting == "Hello, world!"
 
-    def test_builder_with_provider(self):
+    def test_builder_with_provider_override(self):
         foo = (
             FooBuilder()
             .using_provider(Foo)
@@ -60,7 +61,7 @@ class BuilderTest(unittest.TestCase):
         )
         assert isinstance(foo, Foo)
 
-    def test_builder_with_constant(self):
+    def test_builder_with_provider_and_constant(self):
 
         class Foo_Test(Foo):
             def __init__(self, name: str):
@@ -68,14 +69,14 @@ class BuilderTest(unittest.TestCase):
 
         foo = (
             FooBuilder()
-            .using_provider(Foo_Test, Foo)
-            .using_constant("World", str)
+            .using_provider(Foo, Foo_Test)
+            .using_constant(str, "World")
             .build()
         )
 
         assert foo.name == "World"
 
-    def test_builder_with_factory(self):
+    def test_builder_with_provider_and_constant_and_factory_override(self):
 
         class Foo_Test(Foo):
             def __init__(self, name: str, greet: GreeterFactory):
@@ -83,9 +84,9 @@ class BuilderTest(unittest.TestCase):
 
         foo = (
             FooBuilder()
-            .using_provider(Foo_Test, Foo)
-            .using_constant("World", str)
-            .using_factory(eng_greeter_factory, GreeterFactory)
+            .using_provider(Foo, Foo_Test)
+            .using_constant(str, "World")
+            .using_factory(GreeterFactory, eng_greeter_factory)
             .build()
         )
 
@@ -99,15 +100,12 @@ class BuilderTest(unittest.TestCase):
 
         class FooTestBuilder(BuilderBase[Bar]):
             def __init__(self):
-                super().__init__(
-                    target_t=Bar,
-                    providers=[ProviderBinding(Bar)],
-                )
+                super().__init__(Bar)
 
         bar = (
             FooTestBuilder()
-            .using_constant("World", str)
-            .using_factory(eng_greeter_factory, GreeterFactory)
+            .using_constant(str, "World")
+            .using_factory(GreeterFactory, eng_greeter_factory)
             .build()
         )
 

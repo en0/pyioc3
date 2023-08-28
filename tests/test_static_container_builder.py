@@ -73,3 +73,11 @@ class StaticContainerTest(unittest.TestCase):
         container = self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(Container, members)
+
+    @patch("pyioc3.static_container_builder.StaticContainer")
+    def test_binding_scope_by_string_is_ok(self, container_mock):
+        self.builder.bind(DuckInterface, DuckA, "singleton")
+        self.builder.bind(QuackBehavior, Sqeak)
+        container = self.builder.build()
+        members, *_ = container_mock.call_args[0]
+        self.assertIn(Container, members)

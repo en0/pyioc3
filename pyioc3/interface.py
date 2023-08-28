@@ -1,15 +1,52 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List
+from typing import (
+    Callable,
+    NamedTuple,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from .scope_enum import ScopeEnum
-from .bound_member import BoundMember
+
+
+TARGET_T = TypeVar("TARGET_T")
+PROVIDER_T = TypeVar("PROVIDER_T")
+FACTORY_T = Callable[..., PROVIDER_T]
+
+
+class ProviderBinding(NamedTuple):
+    """Represents a binding for providing instances through dependency injection."""
+
+    annotation: Type[PROVIDER_T]
+    implementation: Optional[Type[PROVIDER_T]] = None
+    scope: Optional[Union[str, ScopeEnum]] = None
+    on_activate: Optional[Callable[[PROVIDER_T], PROVIDER_T]] = None
+
+
+class ConstantBinding(NamedTuple):
+    """Represents a binding for providing constant values through dependency injection."""
+
+    value: PROVIDER_T
+    annotation: Type[PROVIDER_T]
+
+
+class FactoryBinding(NamedTuple):
+    """Represents a binding for providing instances created by factory functions."""
+
+    factory: Callable[["Container"], FACTORY_T]
+    annotation: FACTORY_T
+
+
+Binding = Union[ProviderBinding, ConstantBinding, FactoryBinding]
 
 
 class Scope(ABC):
     """An IOC Instance Scope"""
 
     @abstractmethod
-    def __contains__(self, annotation: any) -> bool:
+    def __contains__(self, annotation: Type[PROVIDER_T]) -> bool:
         """Check if the given annotation exists in this scope.
 
         Arguments:
@@ -21,7 +58,7 @@ class Scope(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def add(self, annotation: any, instance: object) -> None:
+    def add(self, annotation: Type[PROVIDER_T], instance: PROVIDER_T) -> None:
         """Add a instance to this scope under the given annotation
 
         Arguments:
@@ -31,7 +68,7 @@ class Scope(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def use(self, annotation: any) -> object:
+    def use(self, annotation: Type[PROVIDER_T]) -> object:
         """Get the instance associated with the given annotation.
 
         Arguments:
@@ -47,7 +84,7 @@ class Container(ABC):
     """An IOC Container"""
 
     @abstractmethod
-    def get(self, annotation: any) -> object:
+    def get(self, annotation: Type[PROVIDER_T]) -> PROVIDER_T:
         """Retrieve an instance from the container
 
         The instance will be produced according to it's scope. If the instance
@@ -68,10 +105,10 @@ class ContainerBuilder(ABC):
     @abstractmethod
     def bind(
         self,
-        annotation: any,
-        implementation: Callable,
-        scope: ScopeEnum = ScopeEnum.TRANSIENT,
-        on_activate: Callable[[any], any] = None,
+        annotation: Type[PROVIDER_T],
+        implementation: Optional[Type[PROVIDER_T]] = None,
+        scope: Union[str, ScopeEnum] = ScopeEnum.TRANSIENT,
+        on_activate: Callable[[PROVIDER_T], PROVIDER_T] = None,
     ):
         """Bind a class.
 
@@ -83,14 +120,15 @@ class ContainerBuilder(ABC):
         Arguments:
           annotation:     The hint used to inject an instance of implementation
 
-          implementation: A callable type who's result will be stored return and
-                          stored according to the scope
+          implementation: Optional: A callable type who's result will be stored return
+                          and stored according to the scope. If implementation is not
+                          inlcuded Annotation will be used in it's place.
 
-          scope:          Identifies how the object should be cached. Options are
-                          Transient, Requested, Singleton
+          scope:          Optional: Identifies how the object should be cached.
+                          Options are Transient, Requested, Singleton
                           Default: Transient.
 
-          on_activate:    An optional function that will be called with the
+          on_activate:    Optional: A function that will be called with the
                           constructed implementation before it is used as a dep
                           or given as the return in container.get()
                           Default: None.
@@ -113,7 +151,7 @@ class ContainerBuilder(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def bind_constant(self, annotation: any, value: object):
+    def bind_constant(self, annotation: Type[PROVIDER_T], value: PROVIDER_T):
         """Bind a constant value
 
         This allows you to bind any object to an annotation in a singleton scope.
@@ -132,7 +170,11 @@ class ContainerBuilder(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def bind_factory(self, annotation: any, factory: Callable[[Container], any]):
+    def bind_factory(
+        self,
+        annotation: FACTORY_T,
+        factory: Callable[[Container], FACTORY_T]
+    ):
         """Bind a higher order function
 
         This approach allows you to control the creation of objects and gives you access
@@ -175,31 +217,3 @@ class ContainerBuilder(ABC):
         """
         raise NotImplementedError()
 
-
-class CycleTest(ABC):
-    """Test a graph of BoundMembers for circular dependencies."""
-    @abstractmethod
-    def find_cycle(self, bound_members: Dict[any, BoundMember]) -> List[BoundMember]:
-        """Check graph of BoundMembers for cycles.
-
-        Arguments:
-          bound_members: The graph to test.
-        """
-        raise NotImplementedError()
-
-class BoundMemberFactory(ABC):
-    @abstractmethod
-    def build(
-        self,
-        annotation: any,
-        implementation: Callable,
-        scope: ScopeEnum
-    ) -> BoundMember:
-        """Create a new bound member.
-
-        Arguments:
-          annotation: The hint associated with this member
-          implementation: The implementation used for this member.
-          scope: The scope used to construct implementations for this member.
-        """
-        raise NotImplementedError()

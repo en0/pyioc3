@@ -25,17 +25,12 @@ class RubberDucky(Duck):
     def quack(self):
         self._quack_behavior.do_quack()
 
+ioc = (
+    StaticContainerBuilder()
+    .bind(Duck, RubberDucky)
+    .bind(QuackBehavior, Squeak)
+    .build()
+)
 
-ioc_builder = StaticContainerBuilder()
-ioc_builder.bind(
-    annotation=Duck,
-    implementation=RubberDucky)
-
-ioc_builder.bind(
-    annotation=QuackBehavior,
-    implementation=Squeak)
-
-ioc = ioc_builder.build()
-rubber_duck: Duck = ioc.get(Duck)
-
+rubber_duck = ioc.get(Duck)
 rubber_duck.quack()

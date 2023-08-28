@@ -4,12 +4,13 @@ How to deal with types that provide the same interface.
 This gets very close to the service lookup pattern so it should be
 avoided, However, the following is a decent workaround.
 """
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
+from typing import Callable, TypeAlias
 
-from pyioc3 import StaticContainerBuilder
+from pyioc3 import StaticContainerBuilder, Container
 
 
-class Base(metaclass=ABCMeta):
+class Base(ABC):
     """Common base class used to find all subclasses"""
     name: str
 
@@ -33,19 +34,9 @@ class Provider2(Base):
         print("Foo from provider 2")
 
 
-class Main:
-    """The application entry point"""
+CreateProviderFactory: TypeAlias = Callable[[str], Base]
 
-    def __init__(self, factory: "create_provider"):
-        self._create_provider = factory
-
-    def __call__(self, **kwargs):
-        kwargs.setdefault("provider", "p1")
-        provider: Base = self._create_provider(kwargs["provider"])
-        provider.foo()
-
-
-def create_provider_factory(ctx):
+def create_provider_factory(ctx: Container) -> CreateProviderFactory:
     """A factory used to locate the appropriate provider"""
 
     # This factory will return a single provider, but you could
@@ -67,27 +58,32 @@ def create_provider_factory(ctx):
     return create_provider
 
 
-ioc_builder = StaticContainerBuilder()
+class Main:
+    """The application entry point"""
 
-# Bind each provider under it's own annotation
-ioc_builder.bind(
-    annotation=Provider1,
-    implementation=Provider1)
-ioc_builder.bind(
-    annotation=Provider2,
-    implementation=Provider2)
+    def __init__(self, factory: CreateProviderFactory):
+        self._create_provider = factory
 
-# Bind the factory
-ioc_builder.bind_factory(
-    annotation="create_provider",
-    factory=create_provider_factory)
+    def __call__(self, **kwargs):
+        kwargs.setdefault("provider", "p1")
+        provider: Base = self._create_provider(kwargs["provider"])
+        provider.foo()
 
-# Application Entry
-ioc_builder.bind(
-    annotation=Main,
-    implementation=Main)
+ioc = (
+    StaticContainerBuilder()
 
-ioc = ioc_builder.build()
+    # Application Entry
+    .bind(Main)
+
+    # Bind each provider under it's own annotation
+    .bind(Provider1)
+    .bind(Provider2)
+
+    # Bind the factory
+    .bind_factory(CreateProviderFactory, create_provider_factory)
+
+    .build()
+)
 
 main = ioc.get(Main)
 main(provider="p2")

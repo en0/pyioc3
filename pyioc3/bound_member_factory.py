@@ -1,22 +1,51 @@
-from inspect import signature, isclass
+from inspect import isclass
 from types import FunctionType, MethodType
-from typing import get_type_hints, Callable, Any
+from typing import get_type_hints, Callable, Type, Union
 
 from .bound_member import BoundMember
 from .scope_enum import ScopeEnum
-from .interface import BoundMemberFactory
+from .adapters import ValueAsImplAdapter, FactoryAsImplAdapter
+from .interface import PROVIDER_T, Binding, FactoryBinding, ConstantBinding, ProviderBinding
+from .errors import PyIOC3Error
 
 
-class DefaultBoundMemberFactory(BoundMemberFactory):
+class BoundMemberFactory:
 
-    def build(
-        self,
-        annotation: any,
-        implementation: Callable,
-        scope: ScopeEnum,
-        on_activate: Callable[[Any], Any] = None,
+    @staticmethod
+    def build(binding: Binding) -> BoundMember:
+        if isinstance(binding, ProviderBinding):
+            return BoundMemberFactory._build(
+                annotation=binding.annotation,
+                implementation=binding.implementation or binding.annotation,
+                scope=binding.scope or ScopeEnum.TRANSIENT,
+                on_activate=binding.on_activate
+            )
+
+        elif isinstance(binding, ConstantBinding):
+            return BoundMemberFactory._build(
+                annotation=binding.annotation,
+                implementation=ValueAsImplAdapter(binding.value),
+                scope=ScopeEnum.SINGLETON,
+                on_activate=None
+            )
+
+        elif isinstance(binding, FactoryBinding):
+            return BoundMemberFactory._build(
+                annotation=binding.annotation,
+                implementation=FactoryAsImplAdapter(binding.factory),
+                scope=ScopeEnum.SINGLETON,
+                on_activate=None
+            )
+        else:
+            raise PyIOC3Error("Unable to create bound member.")
+
+    @staticmethod
+    def _build(
+        annotation: Type[PROVIDER_T],
+        implementation: Type[PROVIDER_T],
+        scope: Union[str, ScopeEnum],
+        on_activate: Callable[[PROVIDER_T], PROVIDER_T] = None,
     ) -> BoundMember:
-
         if isclass(implementation):
             params = get_type_hints(implementation.__init__)
         elif type(implementation) == FunctionType:
@@ -31,7 +60,7 @@ class DefaultBoundMemberFactory(BoundMemberFactory):
         return BoundMember(
             annotation=annotation,
             implementation=implementation,
-            scope=scope,
+            scope=ScopeEnum.from_string(scope) if isinstance(scope, str) else scope,
             parameters=[p for k, p in params.items() if k != 'return'],
             on_activate=on_activate
         )

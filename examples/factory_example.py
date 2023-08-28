@@ -1,26 +1,28 @@
-from pyioc3 import StaticContainerBuilder, StaticContainer
+from typing import Callable, NewType, TypeAlias
+from pyioc3 import StaticContainerBuilder, Container
 
-ioc_builder = StaticContainerBuilder()
+
+GreetingFactory: TypeAlias = Callable[[str], str]
+Greeting = NewType("Greeting", str)
 
 
-def my_factory_wrapper(ctx: StaticContainer):
+def my_factory_wrapper(ctx: Container) -> GreetingFactory:
 
-    def my_factory(name: str):
-        greeting = ctx.get("greeting")
+    def greeting_factory(name: str) -> str:
+        greeting = ctx.get(Greeting)
         return "{}, {}!".format(greeting, name)
 
-    return my_factory
+    return greeting_factory
 
 
-ioc_builder.bind_factory(
-    annotation="my_factory",
-    factory=my_factory_wrapper)
-ioc_builder.bind_constant(
-    annotation="greeting",
-    value="Hello")
+ioc = (
+    StaticContainerBuilder()
+    .bind_factory(GreetingFactory, my_factory_wrapper)
+    .bind_constant(Greeting, "Hello")
+    .build()
+)
 
-ioc = ioc_builder.build()
+greeting_factory = ioc.get(GreetingFactory)
+value = greeting_factory("Factory")
 
-fact = ioc.get("my_factory")
-value: str = fact("Factory")
 print(value)

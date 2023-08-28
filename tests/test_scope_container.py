@@ -67,15 +67,15 @@ class ScopeContainerTests(unittest.TestCase):
         a1 = BoundMember(
             annotation="a1",
             implementation=lambda : "a1_impl",
-            scope=ScopeEnum.SINGLETON, 
+            scope=ScopeEnum.SINGLETON,
             parameters=[])
         a1._depends_on=[]
         self.container.add(a1)
 
         a2 = BoundMember(
-            annotation="a2", 
+            annotation="a2",
             implementation=lambda : "a2_impl",
-            scope=ScopeEnum.SINGLETON, 
+            scope=ScopeEnum.SINGLETON,
             parameters=[])
         a2._depends_on=[]
         self.container.add(a2)
@@ -111,15 +111,15 @@ class ScopeContainerTests(unittest.TestCase):
         a1 = BoundMember(
             annotation="a1",
             implementation=lambda : "a1_impl",
-            scope=ScopeEnum.SINGLETON, 
+            scope=ScopeEnum.SINGLETON,
             parameters=[],
             on_activate=on_activate)
         a1._depends_on=[]
 
         a2 = BoundMember(
-            annotation="a2", 
+            annotation="a2",
             implementation=lambda a : "a2_impl",
-            scope=ScopeEnum.SINGLETON, 
+            scope=ScopeEnum.SINGLETON,
             parameters=["a1"])
         a2._depends_on=[a1]
 
@@ -144,15 +144,15 @@ class ScopeContainerTests(unittest.TestCase):
         a1 = BoundMember(
             annotation="a1",
             implementation=lambda : "a1_impl",
-            scope=ScopeEnum.TRANSIENT, 
+            scope=ScopeEnum.TRANSIENT,
             parameters=[],
             on_activate=on_activate)
         a1._depends_on=[]
 
         a2 = BoundMember(
-            annotation="a2", 
+            annotation="a2",
             implementation=lambda a : "a2_impl",
-            scope=ScopeEnum.SINGLETON, 
+            scope=ScopeEnum.SINGLETON,
             parameters=["a1"])
         a2._depends_on=[a1]
 

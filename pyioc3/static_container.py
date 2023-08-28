@@ -1,14 +1,21 @@
 from collections import deque
+from typing import Dict, Type
 
 from .scope_enum import ScopeEnum
 from .bound_member import BoundMember
 from .scope_container import PersistentScope, ScopeContainer
-from .interface import Container
+from .interface import (
+    Container,
+    PROVIDER_T,
+)
 
 
 class StaticContainer(Container):
 
-    def __init__(self, bound_members):
+    def __init__(
+        self,
+        bound_members: Dict[Type[PROVIDER_T], BoundMember]
+    ):
         self._singletons = PersistentScope()
         self._bound_members = bound_members
 
@@ -32,7 +39,7 @@ class StaticContainer(Container):
                 scope.add(m)
         return scope
 
-    def get(self, annotation):
+    def get(self, annotation: Type[PROVIDER_T]) -> PROVIDER_T:
         member = self._bound_members[annotation]
         scope = self._build_scope(member)
         return scope.get_instance_of(member)

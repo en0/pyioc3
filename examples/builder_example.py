@@ -5,6 +5,7 @@ from pyioc3.builder import BuilderBase, ProviderBinding
 
 
 class QuackBehavior(ABC):
+
     @abstractmethod
     def do_quack(self):
         raise NotImplementedError()
@@ -34,18 +35,12 @@ class Quack(QuackBehavior):
 class DuckBuilder(BuilderBase[Duck]):
 
     def __init__(self):
-        super().__init__(
-            target_t=Duck,
-            providers=[
-                ProviderBinding(Duck),
-                ProviderBinding(Quack, QuackBehavior),
-            ]
-        )
+        super().__init__(Duck, [ProviderBinding(Quack, QuackBehavior)])
 
 duck = (
     DuckBuilder()
     # Override the default QuackBehavior
-    .using_provider(Squeak, QuackBehavior)
+    .using_provider(QuackBehavior, Squeak)
     .build()
 )
 

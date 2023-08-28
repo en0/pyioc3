@@ -1,32 +1,50 @@
-from collections import deque
-from inspect import isclass
-from typing import Dict
+from typing import Dict, Union, Type, Callable, Optional, List
 
 from .adapters import FactoryAsImplAdapter, ValueAsImplAdapter
 from .bound_member import BoundMember
-from .bound_member_factory import DefaultBoundMemberFactory
+from .bound_member_factory import BoundMemberFactory
 from .errors import CircularDependencyError
-from .interface import ContainerBuilder, CycleTest, Container, BoundMemberFactory
-from .queued_cycle_test import QueuedCycleTest as DefaultCycleTest
+from .queued_cycle_test import QueuedCycleTest
 from .scope_enum import ScopeEnum
 from .static_container import StaticContainer
+from .interface import (
+    ConstantBinding,
+    Container,
+    ContainerBuilder,
+    FACTORY_T,
+    FactoryBinding,
+    PROVIDER_T,
+    ProviderBinding,
+    Binding,
+)
 
 
 class StaticContainerBuilder(ContainerBuilder):
     """Bind classes, values, functions, and factories to a container."""
 
-    def __init__(self, cycle_test: CycleTest = None):
-        self._bound_members: Dict[any, BoundMember] = {}
-        self._bound_member_factory: BoundMemberFactory = DefaultBoundMemberFactory()
-        self._cycle_test: CycleTest = cycle_test or DefaultCycleTest()
+    def __init__(
+        self,
+        bindings: Optional[List[Binding]] = None,
+    ) -> None:
+        """Create a StaticContainerBuilder.
+
+        Arguments:
+            bindings: Optional: A list of default binidngs.
+
+        Returns:
+            StaticContainerBuilder
+        """
+        self._bindings: Dict[Type[PROVIDER_T], Binding] = {}
+        for binding in bindings or []:
+            self._bindings[binding.annotation] = binding
 
     def bind(
         self,
-        annotation,
-        implementation,
-        scope: ScopeEnum = ScopeEnum.TRANSIENT,
-        on_activate = None,
-    ):
+        annotation: Type[PROVIDER_T],
+        implementation: Optional[Type[PROVIDER_T]] = None,
+        scope: Union[str, ScopeEnum] = ScopeEnum.TRANSIENT,
+        on_activate: Callable[[PROVIDER_T], PROVIDER_T] = None,
+    ) -> "StaticContainerBuilder":
         """Bind a class.
 
         Bind any callable type to an annotation. Dependencies will be
@@ -37,14 +55,15 @@ class StaticContainerBuilder(ContainerBuilder):
         Arguments:
           annotation:     The hint used to inject an instance of implementation
 
-          implementation: A callable type who's result will be stored return and
-                          stored according to the scope
+          implementation: Optional: A callable type who's result will be stored return
+                          and stored according to the scope. If implementation is not
+                          inlcuded Annotation will be used in it's place.
 
-          scope:          Identifies how the object should be cached. Options are
-                          Transient, Requested, Singleton
+          scope:          Optional: Identifies how the object should be cached.
+                          Options are Transient, Requested, Singleton
                           Default: Transient.
 
-          on_activate:    An optional function that will be called with the
+          on_activate:    Optional: A function that will be called with the
                           constructed implementation before it is used as a dep
                           or given as the return in container.get()
                           Default: None.
@@ -63,10 +82,23 @@ class StaticContainerBuilder(ContainerBuilder):
             ioc_builder.bind(
                 annotation="duck",
                 implementation=Duck)
-        """
-        self._bound_members[annotation] = self._bound_member_factory.build(annotation, implementation, scope, on_activate)
 
-    def bind_constant(self, annotation, value):
+        Returns:
+            StaticContainerBuilder
+        """
+        self._bindings[annotation] = ProviderBinding(
+            implementation=implementation,
+            annotation=annotation,
+            scope=scope,
+            on_activate=on_activate,
+        )
+        return self
+
+    def bind_constant(
+        self,
+        annotation: Type[PROVIDER_T],
+        value: PROVIDER_T,
+    ) -> "StaticContainerBuilder":
         """Bind a constant value
 
         This allows you to bind any object to an annotation in a singleton scope.
@@ -81,13 +113,20 @@ class StaticContainerBuilder(ContainerBuilder):
                 annotation="my_constant",
                 value="Hello, world!")
 
+        Returns:
+            StaticContainerBuilder
         """
-        self.bind(
-            annotation,
-            ValueAsImplAdapter(value),
-            scope=ScopeEnum.SINGLETON)
+        self._bindings[annotation] = ConstantBinding(
+            value=value,
+            annotation=annotation,
+        )
+        return self
 
-    def bind_factory(self, annotation, factory):
+    def bind_factory(
+        self,
+        annotation: FACTORY_T,
+        factory: Callable[[Container], FACTORY_T]
+    ) -> "StaticContainerBuilder":
         """Bind a higher order function
 
         This approach allows you to control the creation of objects and gives you access
@@ -111,11 +150,15 @@ class StaticContainerBuilder(ContainerBuilder):
             ioc_builder.bind_factory(
                 annotation="my_factory",
                 factory=my_function)
+
+        Returns:
+            StaticContainerBuilder
         """
-        self.bind(
-            annotation,
-            FactoryAsImplAdapter(factory),
-            scope=ScopeEnum.SINGLETON)
+        self._bindings[annotation] = FactoryBinding(
+            factory=factory,
+            annotation=annotation,
+        )
+        return self
 
     def build(self) -> Container:
         """Compute dependency graph and return the container
@@ -130,17 +173,34 @@ class StaticContainerBuilder(ContainerBuilder):
             container = ioc.get(Container)
             container == ioc ## True
         """
-        container = StaticContainer(self._bound_members)
-        self.bind_constant(Container, container)
+
+        bound_members = {
+            binding.annotation: BoundMemberFactory.build(binding)
+            for binding in self._bindings.values()
+        }
+
+        container = StaticContainer(bound_members)
+
+        bound_members[Container] = BoundMemberFactory.build(
+            ConstantBinding(
+                annotation=Container,
+                value=container,
+            )
+        )
 
         # This is here for backwards compatability
-        self.bind_constant(StaticContainer, container)
+        bound_members[StaticContainer] = BoundMemberFactory.build(
+            ConstantBinding(
+                annotation=StaticContainer,
+                value=container,
+            )
+        )
 
-        for bound_member in self._bound_members.values():
+        for bound_member in bound_members.values():
             for annotation in bound_member.parameters:
-                bound_member.bind_dependant(self._bound_members[annotation])
+                bound_member.bind_dependant(bound_members[annotation])
 
-        cycle = self._cycle_test.find_cycle(self._bound_members)
+        cycle = QueuedCycleTest.find_cycle(bound_members)
 
         if cycle:
             raise CircularDependencyError("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))
