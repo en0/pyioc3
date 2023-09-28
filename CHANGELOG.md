@@ -2,6 +2,12 @@
 
 Contributions for release 1.6
 
+- Fixed typeo in readme.
+
+## 2023-09-28 Ian Laird <irlaird@gmail.com>
+
+Contributions for release 1.6
+
 - Improved the message of the KeyError exception thrown when a bound member is
   not found and created a custom exception, MemberNotBoundError, that is thrown
   in these cases. Callers can catch either KeyError or MemberNotBoundError.

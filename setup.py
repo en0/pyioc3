@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="pyioc3",
-    version="1.6.0",
+    version="1.6.1",
     description="Python IOC Container",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -99,7 +99,7 @@ rubber_duck = (
 rubber_duck.quack()
 ```
 
-## BuilderBase API
+## Annotation API
 
 ```python
 from pyioc3.autowire import bind, AutoWireContainerBuilder
