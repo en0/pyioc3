@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 
+from pyioc3.errors import MemberNotBoundError
 from pyioc3.static_container import StaticContainer
 from pyioc3.scope_enum import ScopeEnum
 from pyioc3.bound_member import BoundMember
@@ -126,3 +127,12 @@ class StaticContainerTest(unittest.TestCase):
         self.members["foo3"].bind_dependant(self.members["foo2"])
         bar = self.container.get("foo3")
         self.assertEqual(2, self.members["foo1"].on_activate.call_count)
+
+
+    def test_unbound_member_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.container.get("NoExist")
+
+    def test_unbound_member_raises_member_not_bound_error(self):
+        with self.assertRaises(MemberNotBoundError):
+            self.container.get("NoExist")

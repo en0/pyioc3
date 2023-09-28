@@ -1,6 +1,6 @@
 import pkgutil
 import importlib
-from typing import Union, List, TypeAlias, Callable, Optional, Type, Set
+from typing import Union, List, Callable, Optional, Type, Set
 from types import ModuleType
 from collections import deque
 
@@ -10,9 +10,9 @@ from .scope_enum import ScopeEnum
 from .static_container_builder import StaticContainerBuilder
 
 
-ModuleRef: TypeAlias = Union[str, ModuleType]
-ModuleList: TypeAlias = Union[List[ModuleRef], ModuleRef]
-ExcludeList: TypeAlias = Union[str, List[str]]
+ModuleRef = Union[str, ModuleType]
+ModuleList = Union[List[ModuleRef], ModuleRef]
+ExcludeList = Union[str, List[str]]
 
 
 def bind(

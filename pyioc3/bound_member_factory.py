@@ -10,9 +10,76 @@ from .errors import PyIOC3Error
 
 
 class BoundMemberFactory:
+    """
+    BoundMemberFactory is a factory class for creating BoundMember instances based on
+    different binding types.
+
+    Methods:
+        build(binding: Binding) -> BoundMember:
+            Builds a BoundMember instance based on the provided binding.
+
+    Example:
+        To use `BoundMemberFactory` to create a BoundMember instance:
+
+        ```python
+        from pyioc3.bound_member_factory import BoundMemberFactory, ProviderBinding
+
+        # Create a ProviderBinding.
+        provider_binding = ProviderBinding(
+            annotation=MyAnnotation,
+            implementation=MyImplementation,
+            scope="singleton"
+        )
+
+        # Create a BoundMember using the factory.
+        bound_member = BoundMemberFactory.build(provider_binding)
+        ```
+
+    See Also:
+        - `BoundMember`: Metadata associated with a bound member.
+        - `Binding`: Base interface for defining bindings.
+        - `FactoryBinding`: Binding type for factories.
+        - `ConstantBinding`: Binding type for constants.
+        - `ProviderBinding`: Binding type for providers.
+        - `ScopeEnum`: Enumeration of different dependency scopes.
+        - `adapters.ValueAsImplAdapter`: Adapter for value-based bindings.
+        - `adapters.FactoryAsImplAdapter`: Adapter for factory-based bindings.
+        - `errors.PyIOC3Error`: Error raised for PyIOC3-specific exceptions.
+    """
 
     @staticmethod
     def build(binding: Binding) -> BoundMember:
+        """
+        Builds a BoundMember instance based on the provided binding.
+
+        Args:
+            binding (Binding): The binding for which a BoundMember instance is
+                created.
+
+        Returns:
+            BoundMember: A BoundMember instance representing the binding.
+
+        Raises:
+            PyIOC3Error: If the binding type is not recognized or supported.
+
+        Example:
+            To create a BoundMember instance using the factory:
+
+            ```python
+            from pyioc3.bound_member_factory import BoundMemberFactory, ProviderBinding
+
+            # Create a ProviderBinding.
+            provider_binding = ProviderBinding(
+                annotation=MyAnnotation,
+                implementation=MyImplementation,
+                scope="singleton"
+            )
+
+            # Create a BoundMember using the factory.
+            bound_member = BoundMemberFactory.build(provider_binding)
+            ```
+
+        """
         if isinstance(binding, ProviderBinding):
             return BoundMemberFactory._build(
                 annotation=binding.annotation,

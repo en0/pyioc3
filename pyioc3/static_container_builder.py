@@ -3,7 +3,7 @@ from typing import Dict, Union, Type, Callable, Optional, List
 from .adapters import FactoryAsImplAdapter, ValueAsImplAdapter
 from .bound_member import BoundMember
 from .bound_member_factory import BoundMemberFactory
-from .errors import CircularDependencyError
+from .errors import CircularDependencyError, _MemberNotBoundErrorAsKeyError
 from .queued_cycle_test import QueuedCycleTest
 from .scope_enum import ScopeEnum
 from .static_container import StaticContainer
@@ -198,7 +198,13 @@ class StaticContainerBuilder(ContainerBuilder):
 
         for bound_member in bound_members.values():
             for annotation in bound_member.parameters:
-                bound_member.bind_dependant(bound_members[annotation])
+                try:
+                    bound_member.bind_dependant(bound_members[annotation])
+                except KeyError:
+                    raise _MemberNotBoundErrorAsKeyError(
+                        f"Binding {bound_member.implementation} depends "
+                        f"on {annotation} which is not bound."
+                    )
 
         cycle = QueuedCycleTest.find_cycle(bound_members)
 
