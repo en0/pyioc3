@@ -1,4 +1,4 @@
-from pyioc3.errors import CircularDependencyError
+from pyioc3.errors import CircularDependencyError, MemberNotBoundError
 from pyioc3.interface import Container
 from pyioc3.static_container_builder import StaticContainerBuilder
 from unittest.mock import Mock, patch
@@ -81,3 +81,13 @@ class StaticContainerTest(unittest.TestCase):
         container = self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(Container, members)
+
+    def test_unbound_dependent_raises_key_error(self):
+        self.builder.bind(DuckInterface, DuckA, "singleton")
+        with self.assertRaises(KeyError):
+            self.builder.build()
+
+    def test_unbound_dependent_raises_member_not_bound_error(self):
+        self.builder.bind(DuckInterface, DuckA, "singleton")
+        with self.assertRaises(MemberNotBoundError):
+            self.builder.build()

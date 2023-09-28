@@ -85,16 +85,18 @@ class Container(ABC):
 
     @abstractmethod
     def get(self, annotation: Type[PROVIDER_T]) -> PROVIDER_T:
-        """Retrieve an instance from the container
+        """Retrieve an instance of the specified annotation from the container.
 
-        The instance will be produced according to it's scope. If the instance
-        is new, it's dependency chain will also be created according to their scope.
-
-        Arguments:
-         annotation: The hint used to locate the member
+        Args:
+            annotation (Type[PROVIDER_T]): The annotation (provider) for which an
+                instance is requested.
 
         Returns:
-         An object instance, constant, or function
+            PROVIDER_T: An instance of the specified annotation.
+
+        Raises:
+            MemberNotBoundError: If the requested annotation is not bound in the
+                container.
         """
         raise NotImplementedError()
 
