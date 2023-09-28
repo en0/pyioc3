@@ -6,3 +6,6 @@ class CircularDependencyError(PyIOC3Error):
 
 class ScopeError(PyIOC3Error):
     pass
+
+class AutoWireError(PyIOC3Error):
+    pass

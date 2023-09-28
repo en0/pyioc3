@@ -1,25 +1,53 @@
 # pyioc3
 
-A fast and simple IOC Container for Python.
+Python Inversion of Control (IoC) Container
 
 # About
 
-pyioc3 is a fast and simple inversion of control (ioc) container
-for python.  An IoC container uses class constructor (or in this case
-__init__ method parameters) to build and inject dependencies. pyioc3 
-takes advantage of python's type hint annotations to make injection
-flexible and easy to use.
+pyioc3 is a lightweight and versatile Inversion of Control (IoC) container for
+Python. It simplifies the management of dependencies and enables cleaner, more
+modular code by promoting the use of Dependency Injection (DI) patterns. With
+pyioc3, you can effortlessly wire up your application's components, specify
+their lifecycles, and inject dependencies without the hassle of manual
+instantiation.
 
-# Motivation
+# Key Features
 
-I Love python. I also love OOP.  I wanted better OOP in python. So i built
-this to help enforce SOLID and make my programs better.
+## Multiple APIs
 
-# Goals
+pyioc3 offers multiple configuration interfaces including two manual
+configuration APIs and a decorator-based autowiring API. These APIs are
+flexible, yet simple to use.
 
-Simple. Simple. Simple. Python is already flexible. An IOC container
-is something that you could whip up to suite your needs in an
-afternoon. Or you could install pyioc3 instead.
+## Fluent Interface
+
+pyioc3 manual APIs support method chaining to minimize boiler-plate code and
+intermediate variables.
+
+## Scoped Lifecycles
+
+pyioc3 supports various scopes, including Singleton, Transient, and Requested.
+This provides fine-grained control of the lifecycle of your objects.
+
+## Predictability
+
+pyioc3 is an immutable ioc container that guarentees predictability of the
+dependency tree.
+
+## Constuctor Based DI
+
+pyioc3 implements constructor based dependency injection making it easy to drop
+into existing applications.
+
+## Performance
+
+pyioc3 pre-computes the dependency tree, resulting in fast instantiations to
+keep your code fast.
+
+## OOP Principles
+
+pyioc3 is designed to improve the maintainability, testability, and flexibility
+of your Python applications.
 
 # Quick Start
 
@@ -29,36 +57,75 @@ Install the package
 pip install --user pyioc3
 ```
 
-Make an ioc.py
+## StaticContainerBuilder API
 
 ```python
 from pyioc3 import StaticContainerBuilder
-from .ducks import Duck, RubberDucky
-from .quacks import QuackBehavior, Squeak
 
-ioc_builder = StaticContainerBuilder()
+container = (
+    StaticContainerBuilder()
+    .bind(Duck)
+    .bind(QuackProvider, Squeak)
+    .build()
+)
 
-ioc_builder.bind(
-    annotation=QuackBehavior,
-    implementation=Squeak)
-ioc_builder.bind(
-    annotation=Duck,
-    implementation=RubberDucky)
-    
-ioc = ioc_builder.build()
-__all__ = ["ioc"];
-```
-
-Use the container
-
-```python
-from ioc import ioc
-from .ducks import Duck
-
-duck: Duck = ioc.get(Duck)
+duck = container.get(Duck)
 duck.quack()
 ```
 
-# What More
-- Look at the examples.
-- Feel free to contribute.
+## BuilderBase API
+
+```python
+from pyioc3.builder import BuilderBase, ProviderBinding
+
+class DuckBuilder(Duck):
+    def __init__(self):
+        super().__init__(target_t=Duck)
+
+    def with_quack_noise(self, noise: str) -> "DuckBuilder":
+        self.using_provider(
+            annotation=QuackProvider,
+            implementation=DynamicQuackProvider,
+            on_activate=lambda x: x.set_quack_noise(noise)
+        )
+        return self
+
+rubber_duck = (
+    DuckBuilder()
+    .with_quack_noise("Squeak")
+    .build()
+)
+
+rubber_duck.quack()
+```
+
+## BuilderBase API
+
+```python
+from pyioc3.autowire import bind, AutoWireContainerBuilder
+
+
+class QuackProvider:
+    def quack(self):
+        raise NotImplementedError()
+
+
+@bind()
+class Duck:
+    def __init__(self, quack: QuackProvider):
+        self._quack = quack
+
+    def quack(self):
+        self._quack.quack()
+
+
+@bind(QuackProvider)
+class Squeak(QuackProvider):
+
+    def quack(self):
+        print("Squeak")
+
+
+duck = AutoWireContainerBuilder("my_package").build().get(Duck)
+duck.quack()
+```

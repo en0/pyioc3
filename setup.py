@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="pyioc3",
-    version="1.5.0",
+    version="1.6.0",
     description="Python IOC Container",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -16,8 +16,14 @@ setup(
     url="https://github.com/en0/pyioc",
     packages=["pyioc3"],
     classifiers=[
-        "Programming Language :: Python :: 3.5",
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Utilities",
     ],
+    keywords="OOP IoC Dependency Injection",
 )
