@@ -8,9 +8,7 @@ from pyioc3.bound_member import BoundMember
 
 
 class StaticContainerTest(unittest.TestCase):
-
     def setUp(self):
-
         foo1 = BoundMember(
             annotation="foo1",
             implementation=object,
@@ -19,23 +17,23 @@ class StaticContainerTest(unittest.TestCase):
         )
 
         foo2 = BoundMember(
-            annotation = "foo2",
-            implementation = MagicMock(),
-            scope = ScopeEnum.TRANSIENT,
-            parameters = ["foo1"],
+            annotation="foo2",
+            implementation=MagicMock(),
+            scope=ScopeEnum.TRANSIENT,
+            parameters=["foo1"],
         )
 
         foo3 = BoundMember(
-            annotation = "foo3",
-            implementation = MagicMock(),
-            scope = ScopeEnum.TRANSIENT,
-            parameters = ["foo1"],
+            annotation="foo3",
+            implementation=MagicMock(),
+            scope=ScopeEnum.TRANSIENT,
+            parameters=["foo1"],
         )
 
         foo2.bind_dependant(foo1)
         foo3.bind_dependant(foo1)
 
-        self.members = {f.annotation: f for f in [ foo1, foo2, foo3 ]}
+        self.members = {f.annotation: f for f in [foo1, foo2, foo3]}
         self.container = StaticContainer(self.members)
 
     def test_retrieves_instance(self):
@@ -63,24 +61,33 @@ class StaticContainerTest(unittest.TestCase):
     def test_injects_deps(self):
         self.members["foo1"].implementation = MagicMock(return_value="bar")
         self.container.get("foo2")
-        self.members["foo2"].implementation.assert_called_with('bar')
+        self.members["foo2"].implementation.assert_called_with("bar")
 
     def test_injected_deps_are_unique_when_transient(self):
         self.container.get("foo2")
         self.container.get("foo3")
-        self.assertNotEqual(self.members["foo2"].implementation.call_args, self.members["foo3"].implementation.call_args)
+        self.assertNotEqual(
+            self.members["foo2"].implementation.call_args,
+            self.members["foo3"].implementation.call_args,
+        )
 
     def test_injected_deps_are_the_same_when_singleton(self):
         self.members["foo1"].scope = ScopeEnum.SINGLETON
         self.container.get("foo2")
         self.container.get("foo3")
-        self.assertEqual(self.members["foo2"].implementation.call_args, self.members["foo3"].implementation.call_args)
+        self.assertEqual(
+            self.members["foo2"].implementation.call_args,
+            self.members["foo3"].implementation.call_args,
+        )
 
     def test_injected_deps_are_unqueue_when_requested(self):
         self.members["foo1"].scope = ScopeEnum.REQUESTED
         self.container.get("foo2")
         self.container.get("foo3")
-        self.assertNotEqual(self.members["foo2"].implementation.call_args, self.members["foo3"].implementation.call_args)
+        self.assertNotEqual(
+            self.members["foo2"].implementation.call_args,
+            self.members["foo3"].implementation.call_args,
+        )
 
     def test_injected_deps_are_the_same_when_requested_in_same_tree(self):
         self.members["foo1"].scope = ScopeEnum.REQUESTED
@@ -94,22 +101,22 @@ class StaticContainerTest(unittest.TestCase):
     def test_calls_on_activate(self):
         self.members["foo1"].implementation = MagicMock(return_value="bar")
         self.members["foo1"].on_activate = MagicMock(return_value="bar")
-        bar = self.container.get("foo1")
+        self.container.get("foo1")
         self.members["foo1"].on_activate.assert_called_with("bar")
 
     def test_calls_on_activate_for_dep(self):
         self.members["foo1"].scope = ScopeEnum.SINGLETON
         self.members["foo1"].implementation = MagicMock(return_value="bar")
         self.members["foo1"].on_activate = MagicMock(return_value="bar")
-        bar = self.container.get("foo2")
+        self.container.get("foo2")
         self.members["foo1"].on_activate.assert_called_with("bar")
 
     def test_calls_on_activate_only_once_when_singleton(self):
         self.members["foo1"].scope = ScopeEnum.SINGLETON
         self.members["foo1"].implementation = MagicMock(return_value="bar")
         self.members["foo1"].on_activate = MagicMock(return_value="bar")
-        bar = self.container.get("foo2")
-        bar = self.container.get("foo3")
+        self.container.get("foo2")
+        self.container.get("foo3")
         self.members["foo1"].on_activate.assert_called_once_with("bar")
 
     def test_calls_on_activate_only_once_when_requested_in_same_tree(self):
@@ -117,7 +124,7 @@ class StaticContainerTest(unittest.TestCase):
         self.members["foo1"].implementation = MagicMock(return_value="bar")
         self.members["foo1"].on_activate = MagicMock(return_value="bar")
         self.members["foo3"].bind_dependant(self.members["foo2"])
-        bar = self.container.get("foo3")
+        self.container.get("foo3")
         self.members["foo1"].on_activate.assert_called_once_with("bar")
 
     def test_calls_on_activate_each_time_it_is_needed_when_transient(self):
@@ -125,9 +132,8 @@ class StaticContainerTest(unittest.TestCase):
         self.members["foo1"].implementation = MagicMock(return_value="bar")
         self.members["foo1"].on_activate = MagicMock(return_value="bar")
         self.members["foo3"].bind_dependant(self.members["foo2"])
-        bar = self.container.get("foo3")
+        self.container.get("foo3")
         self.assertEqual(2, self.members["foo1"].on_activate.call_count)
-
 
     def test_unbound_member_raises_key_error(self):
         with self.assertRaises(KeyError):

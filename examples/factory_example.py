@@ -7,7 +7,6 @@ Greeting = NewType("Greeting", str)
 
 
 def my_factory_wrapper(ctx: Container) -> GreetingFactory:
-
     def greeting_factory(name: str) -> str:
         greeting = ctx.get(Greeting)
         return "{}, {}!".format(greeting, name)

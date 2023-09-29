@@ -5,7 +5,6 @@ from pyioc3.errors import ScopeError
 
 
 class SystemTest(unittest.TestCase):
-
     def test_transient_from_string(self):
         assert ScopeEnum.TRANSIENT == ScopeEnum.from_string("transient")
         assert ScopeEnum.TRANSIENT == ScopeEnum.from_string("t")

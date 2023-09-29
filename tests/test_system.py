@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from pyioc3 import StaticContainerBuilder, ScopeEnum
-from unittest.mock import MagicMock
 import unittest
 
 
@@ -9,10 +8,12 @@ class Interface(ABC):
     def method(self) -> None:
         raise NotImplementedError()
 
+
 class DependentInterface(ABC):
     @abstractmethod
     def x(self) -> None:
         raise NotImplementedError()
+
 
 class CacheInterface(ABC):
     @abstractmethod
@@ -34,6 +35,7 @@ class Cache(CacheInterface):
     def get_count(self) -> None:
         return self._count
 
+
 class Cache2(CacheInterface):
     def __init__(self):
         self._count = 0
@@ -43,6 +45,7 @@ class Cache2(CacheInterface):
 
     def get_count(self) -> None:
         return self._count
+
 
 class Parent(Interface):
     def __init__(self, dep: DependentInterface):
@@ -59,8 +62,8 @@ class Child(DependentInterface):
     def x(self):
         self.cache.inc()
 
-class SystemTest(unittest.TestCase):
 
+class SystemTest(unittest.TestCase):
     def test_simple(self):
         builder = StaticContainerBuilder()
         builder.bind(Interface, Parent)
@@ -82,4 +85,3 @@ class SystemTest(unittest.TestCase):
         cache = ioc.get(CacheInterface)
         parent.method()
         self.assertEqual(cache.get_count(), 1)
-

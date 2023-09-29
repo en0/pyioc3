@@ -5,7 +5,13 @@ from typing import get_type_hints, Callable, Type, Union
 from .bound_member import BoundMember
 from .scope_enum import ScopeEnum
 from .adapters import ValueAsImplAdapter, FactoryAsImplAdapter
-from .interface import PROVIDER_T, Binding, FactoryBinding, ConstantBinding, ProviderBinding
+from .interface import (
+    PROVIDER_T,
+    Binding,
+    FactoryBinding,
+    ConstantBinding,
+    ProviderBinding,
+)
 from .errors import PyIOC3Error
 
 
@@ -85,7 +91,7 @@ class BoundMemberFactory:
                 annotation=binding.annotation,
                 implementation=binding.implementation or binding.annotation,
                 scope=binding.scope or ScopeEnum.TRANSIENT,
-                on_activate=binding.on_activate
+                on_activate=binding.on_activate,
             )
 
         elif isinstance(binding, ConstantBinding):
@@ -93,7 +99,7 @@ class BoundMemberFactory:
                 annotation=binding.annotation,
                 implementation=ValueAsImplAdapter(binding.value),
                 scope=ScopeEnum.SINGLETON,
-                on_activate=None
+                on_activate=None,
             )
 
         elif isinstance(binding, FactoryBinding):
@@ -101,7 +107,7 @@ class BoundMemberFactory:
                 annotation=binding.annotation,
                 implementation=FactoryAsImplAdapter(binding.factory),
                 scope=ScopeEnum.SINGLETON,
-                on_activate=None
+                on_activate=None,
             )
         else:
             raise PyIOC3Error("Unable to create bound member.")
@@ -115,11 +121,11 @@ class BoundMemberFactory:
     ) -> BoundMember:
         if isclass(implementation):
             params = get_type_hints(implementation.__init__)
-        elif type(implementation) == FunctionType:
+        elif type(implementation) is FunctionType:
             params = get_type_hints(implementation)
-        elif type(implementation) == MethodType:
+        elif type(implementation) is MethodType:
             params = get_type_hints(implementation)
-        elif hasattr(implementation, '__call__'):
+        elif hasattr(implementation, "__call__"):
             params = get_type_hints(implementation.__call__)
         else:
             params = get_type_hints(implementation)
@@ -128,6 +134,6 @@ class BoundMemberFactory:
             annotation=annotation,
             implementation=implementation,
             scope=ScopeEnum.from_string(scope) if isinstance(scope, str) else scope,
-            parameters=[p for k, p in params.items() if k != 'return'],
-            on_activate=on_activate
+            parameters=[p for k, p in params.items() if k != "return"],
+            on_activate=on_activate,
         )

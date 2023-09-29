@@ -1,7 +1,5 @@
 from typing import Dict, Union, Type, Callable, Optional, List
 
-from .adapters import FactoryAsImplAdapter, ValueAsImplAdapter
-from .bound_member import BoundMember
 from .bound_member_factory import BoundMemberFactory
 from .errors import CircularDependencyError, _MemberNotBoundErrorAsKeyError
 from .queued_cycle_test import QueuedCycleTest
@@ -123,9 +121,7 @@ class StaticContainerBuilder(ContainerBuilder):
         return self
 
     def bind_factory(
-        self,
-        annotation: FACTORY_T,
-        factory: Callable[[Container], FACTORY_T]
+        self, annotation: FACTORY_T, factory: Callable[[Container], FACTORY_T]
     ) -> "StaticContainerBuilder":
         """Bind a higher order function
 
@@ -209,6 +205,9 @@ class StaticContainerBuilder(ContainerBuilder):
         cycle = QueuedCycleTest.find_cycle(bound_members)
 
         if cycle:
-            raise CircularDependencyError("Circular Dependency Detected: " + ", ".join([str(m.implementation) for m in cycle]))
+            raise CircularDependencyError(
+                "Circular Dependency Detected: "
+                + ", ".join([str(m.implementation) for m in cycle])
+            )
 
         return container

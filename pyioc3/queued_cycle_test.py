@@ -5,7 +5,6 @@ from .bound_member import BoundMember
 
 
 class QueuedCycleTest:
-
     @staticmethod
     def find_cycle(bound_members: Dict[any, BoundMember]) -> List[BoundMember]:
         """Check if a graph of bound members contains a cycle.

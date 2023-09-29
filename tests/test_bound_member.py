@@ -1,11 +1,12 @@
 import unittest
-from types import FunctionType
 from random import randint, choice
-from pyioc3.interface import Container, ProviderBinding, ConstantBinding, FactoryBinding
-from pyioc3.bound_member import BoundMember
+from pyioc3.interface import Container, ProviderBinding
 from pyioc3.bound_member_factory import BoundMemberFactory
-from pyioc3.scope_enum import ScopeEnum
-from pyioc3.adapters import ValueAsImplAdapter, FunctionAsImplAdapter, FactoryAsImplAdapter
+from pyioc3.adapters import (
+    ValueAsImplAdapter,
+    FunctionAsImplAdapter,
+    FactoryAsImplAdapter,
+)
 
 from .fixtures import (
     DuckA,
@@ -22,20 +23,25 @@ from .fixtures import (
 
 
 class BoundMemberTest(unittest.TestCase):
-
     def test_expands_parameter_annotations_for_classes(self):
         cases = [
             (ProviderBinding(DuckInterface, DuckA), [QuackBehavior]),
             (ProviderBinding(DuckInterface, DuckB), [QuackBehavior]),
             (ProviderBinding(DuckInterface, DuckC), []),
             (ProviderBinding("foo", duck_d), [QuackBehavior]),
-            (ProviderBinding(FlockInterface[DuckInterface], FlockOfDucks), [DuckA, DuckB]),
-            (ProviderBinding("lambda", lambda : 'x'), []),
+            (
+                ProviderBinding(FlockInterface[DuckInterface], FlockOfDucks),
+                [DuckA, DuckB],
+            ),
+            (ProviderBinding("lambda", lambda: "x"), []),
             (ProviderBinding("value", ValueAsImplAdapter(1)), []),
-            (ProviderBinding("function", FunctionAsImplAdapter(lambda : 'x')), []),
-            (ProviderBinding("factory", FactoryAsImplAdapter(lambda: 'x')), [Container]),
+            (ProviderBinding("function", FunctionAsImplAdapter(lambda: "x")), []),
+            (
+                ProviderBinding("factory", FactoryAsImplAdapter(lambda: "x")),
+                [Container],
+            ),
             (ProviderBinding(DuckInterface, MasterDuck), [QuackBehavior]),
-            (ProviderBinding(DuckInterface, MetaMasterDuck), [QuackBehavior])
+            (ProviderBinding(DuckInterface, MetaMasterDuck), [QuackBehavior]),
         ]
         for binding, result in cases:
             with self.subTest(binding):
@@ -57,5 +63,5 @@ class BoundMemberTest(unittest.TestCase):
         expected = [types[a] for _, a in params]
         g = {}
         exec(f"def func({args}):...", g)
-        b = BoundMemberFactory.build(ProviderBinding("foo", g['func']))
+        b = BoundMemberFactory.build(ProviderBinding("foo", g["func"]))
         self.assertListEqual(expected, b.parameters)

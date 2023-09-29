@@ -52,7 +52,8 @@ class BoundMember:
         - `interface.PROVIDER_T`: Type variable for provider classes.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         annotation: Type[PROVIDER_T],
         implementation: Type[PROVIDER_T],
         scope: ScopeEnum,
@@ -64,7 +65,9 @@ class BoundMember:
         self.scope: ScopeEnum = scope
         self.parameters: List[Any] = parameters
         self._depends_on: List["BoundMember"] = []
-        self.on_activate: Callable[[PROVIDER_T], PROVIDER_T] = on_activate if on_activate else lambda x: x
+        self.on_activate: Callable[[PROVIDER_T], PROVIDER_T] = (
+            on_activate if on_activate else lambda x: x
+        )
 
     def bind_dependant(self, dependant: "BoundMember") -> None:
         """
@@ -91,4 +94,8 @@ class BoundMember:
         Returns:
             str: A string representation of the BoundMember.
         """
-        return f"<BoundMember annotation={self.annotation}, implementation={self.implementation}, scope={self.scope}>"
+        return (
+            f"<BoundMember annotation={self.annotation},"
+            f" implementation={self.implementation},"
+            f" scope={self.scope}>"
+        )

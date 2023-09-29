@@ -69,9 +69,11 @@ def bind(
             annotation=annotation or implementation,
             implementation=implementation,
             scope=scope or ScopeEnum.TRANSIENT,
-            on_activate=on_activate
+            on_activate=on_activate,
         )
-        AutoWireContainerBuilder._staged_bindings.append((implementation.__module__, binding))
+        AutoWireContainerBuilder._staged_bindings.append(
+            (implementation.__module__, binding)
+        )
         return implementation
 
     return decorator
@@ -104,6 +106,7 @@ def bind_factory(annotation: Type[PROVIDER_T]):
         ...         # Perform additional initialization here if needed.
         ...         return instance
     """
+
     def decorator(factory: Callable):
         binding = FactoryBinding(
             annotation=annotation,
@@ -194,17 +197,22 @@ class AutoWireContainerBuilder(StaticContainerBuilder):
         seen = set()
         for binding in bindings:
             if binding.annotation in seen:
-                impls = ', '.join([
-                    str(b.implementation if hasattr(b, "implementation") else b.factory)
-                    for b in bindings
-                    if b.annotation == binding.annotation
-                ])
+                impls = ", ".join(
+                    [
+                        str(
+                            b.implementation
+                            if hasattr(b, "implementation")
+                            else b.factory
+                        )
+                        for b in bindings
+                        if b.annotation == binding.annotation
+                    ]
+                )
                 raise AutoWireError(
                     f"AutoWire found multiple providers for annotation '{binding.annotation}'. "
                     f"[{impls}]"
                 )
             seen.add(binding.annotation)
-
 
     @staticmethod
     def _collect_modules(modules: List[ModuleRef], excludes: List[str]) -> Set[str]:
