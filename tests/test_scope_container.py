@@ -7,11 +7,9 @@ from pyioc3.bound_member import BoundMember
 
 
 class ContainerScopeTests(unittest.TestCase):
-
     @patch("pyioc3.scope_container.PersistentScope")
     @patch("pyioc3.scope_container.TransientScope")
     def setUp(self, transient, persistent):
-
         self.transient = transient()
         self.persistent = persistent()
         self.singleton = persistent()
@@ -30,7 +28,7 @@ class ContainerScopeTests(unittest.TestCase):
                 member.scope = scope_id
                 member.annotation = "foo"
                 member.implementation = MagicMock(return_value="bar")
-                member.on_activate = lambda x:x
+                member.on_activate = lambda x: x
                 self.container.add(member)
                 scope.add.assert_called_with("foo", "bar")
 
@@ -41,7 +39,7 @@ class ContainerScopeTests(unittest.TestCase):
                 member.scope = scope_id
                 member.annotation = "foo"
                 member.implementation = MagicMock(return_value="bar")
-                member.on_activate = lambda x:x
+                member.on_activate = lambda x: x
                 self.container.has(member)
                 scope.__contains__.assert_called_with("foo")
 
@@ -52,32 +50,32 @@ class ContainerScopeTests(unittest.TestCase):
                 member.scope = scope_id
                 member.annotation = "foo"
                 member.implementation = MagicMock(return_value="bar")
-                member.on_activate = lambda x:x
+                member.on_activate = lambda x: x
                 self.container.get_instance_of(member)
                 scope.use.assert_called_with("foo")
 
 
 class ScopeContainerTests(unittest.TestCase):
-
     def setUp(self):
         self.container = ScopeContainer(PersistentScope())
 
     def test_creates_inst_with_deps(self):
-
         a1 = BoundMember(
             annotation="a1",
-            implementation=lambda : "a1_impl",
+            implementation=lambda: "a1_impl",
             scope=ScopeEnum.SINGLETON,
-            parameters=[])
-        a1._depends_on=[]
+            parameters=[],
+        )
+        a1._depends_on = []
         self.container.add(a1)
 
         a2 = BoundMember(
             annotation="a2",
-            implementation=lambda : "a2_impl",
+            implementation=lambda: "a2_impl",
             scope=ScopeEnum.SINGLETON,
-            parameters=[])
-        a2._depends_on=[]
+            parameters=[],
+        )
+        a2._depends_on = []
         self.container.add(a2)
 
         impl = MagicMock()
@@ -85,7 +83,8 @@ class ScopeContainerTests(unittest.TestCase):
             annotation="foo",
             implementation=impl,
             scope=ScopeEnum.SINGLETON,
-            parameters=["a1","a2"])
+            parameters=["a1", "a2"],
+        )
         member._depends_on = [a1, a2]
         self.container.add(member)
 
@@ -95,39 +94,41 @@ class ScopeContainerTests(unittest.TestCase):
         on_activate = MagicMock(return_value="baz")
         member = BoundMember(
             annotation="foo",
-            implementation=lambda : "bar",
+            implementation=lambda: "bar",
             scope=ScopeEnum.SINGLETON,
-            parameters=["a1","a2"],
-            on_activate=on_activate)
+            parameters=["a1", "a2"],
+            on_activate=on_activate,
+        )
         member._depends_on = []
         self.container.add(member)
         on_activate.assert_called_with("bar")
 
-
     def test_on_activate_called_once_if_singleton(self):
-
         on_activate = MagicMock(return_value="baz")
 
         a1 = BoundMember(
             annotation="a1",
-            implementation=lambda : "a1_impl",
+            implementation=lambda: "a1_impl",
             scope=ScopeEnum.SINGLETON,
             parameters=[],
-            on_activate=on_activate)
-        a1._depends_on=[]
+            on_activate=on_activate,
+        )
+        a1._depends_on = []
 
         a2 = BoundMember(
             annotation="a2",
-            implementation=lambda a : "a2_impl",
+            implementation=lambda a: "a2_impl",
             scope=ScopeEnum.SINGLETON,
-            parameters=["a1"])
-        a2._depends_on=[a1]
+            parameters=["a1"],
+        )
+        a2._depends_on = [a1]
 
         member = BoundMember(
             annotation="foo",
             implementation=lambda a, b: "bar",
             scope=ScopeEnum.SINGLETON,
-            parameters=["a1","a2"])
+            parameters=["a1", "a2"],
+        )
         member._depends_on = [a1, a2]
 
         self.container.add(a1)
@@ -136,31 +137,32 @@ class ScopeContainerTests(unittest.TestCase):
 
         on_activate.assert_called_once_with("a1_impl")
 
-
     def test_on_activate_called_for_each_instance_if_transient(self):
-
         on_activate = MagicMock(return_value="baz")
 
         a1 = BoundMember(
             annotation="a1",
-            implementation=lambda : "a1_impl",
+            implementation=lambda: "a1_impl",
             scope=ScopeEnum.TRANSIENT,
             parameters=[],
-            on_activate=on_activate)
-        a1._depends_on=[]
+            on_activate=on_activate,
+        )
+        a1._depends_on = []
 
         a2 = BoundMember(
             annotation="a2",
-            implementation=lambda a : "a2_impl",
+            implementation=lambda a: "a2_impl",
             scope=ScopeEnum.SINGLETON,
-            parameters=["a1"])
-        a2._depends_on=[a1]
+            parameters=["a1"],
+        )
+        a2._depends_on = [a1]
 
         member = BoundMember(
             annotation="foo",
             implementation=lambda a, b: "bar",
             scope=ScopeEnum.SINGLETON,
-            parameters=["a1","a2"])
+            parameters=["a1", "a2"],
+        )
         member._depends_on = [a1, a2]
 
         self.container.add(a1)

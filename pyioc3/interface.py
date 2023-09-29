@@ -173,9 +173,7 @@ class ContainerBuilder(ABC):
 
     @abstractmethod
     def bind_factory(
-        self,
-        annotation: FACTORY_T,
-        factory: Callable[[Container], FACTORY_T]
+        self, annotation: FACTORY_T, factory: Callable[[Container], FACTORY_T]
     ):
         """Bind a higher order function
 
@@ -218,4 +216,3 @@ class ContainerBuilder(ABC):
             container == ioc ## True
         """
         raise NotImplementedError()
-

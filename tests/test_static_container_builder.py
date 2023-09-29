@@ -1,7 +1,7 @@
 from pyioc3.errors import CircularDependencyError, MemberNotBoundError
 from pyioc3.interface import Container
 from pyioc3.static_container_builder import StaticContainerBuilder
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import unittest
 
 from .fixtures import (
@@ -15,7 +15,6 @@ from .fixtures import (
 
 
 class StaticContainerTest(unittest.TestCase):
-
     def setUp(self):
         self.builder = StaticContainerBuilder()
 
@@ -37,23 +36,23 @@ class StaticContainerTest(unittest.TestCase):
     def test_builds_container(self, container_mock):
         self.builder.bind(DuckInterface, DuckA)
         self.builder.bind(QuackBehavior, Sqeak)
-        container = self.builder.build()
+        self.builder.build()
         container_mock.assert_called()
 
     @patch("pyioc3.static_container_builder.StaticContainer")
     def test_builds_container_with_initialized_dep_graph(self, container_mock):
         self.builder.bind(DuckInterface, DuckA)
         self.builder.bind(QuackBehavior, Sqeak)
-        container = self.builder.build()
+        self.builder.build()
         members, *_ = container_mock.call_args[0]
-        dep, = list(members[DuckInterface])
+        (dep,) = list(members[DuckInterface])
         self.assertEqual(QuackBehavior, dep.annotation)
 
     @patch("pyioc3.static_container_builder.StaticContainer")
     def test_builds_container_with_members(self, container_mock):
         self.builder.bind(DuckInterface, DuckA)
         self.builder.bind(QuackBehavior, Sqeak)
-        container = self.builder.build()
+        self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(DuckInterface, members)
         self.assertIn(QuackBehavior, members)
@@ -62,7 +61,7 @@ class StaticContainerTest(unittest.TestCase):
     def test_builds_with_static_container(self, container_mock):
         self.builder.bind(DuckInterface, DuckA)
         self.builder.bind(QuackBehavior, Sqeak)
-        container = self.builder.build()
+        self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(container_mock, members)
 
@@ -70,7 +69,7 @@ class StaticContainerTest(unittest.TestCase):
     def test_builds_with_static_container_as_container_interface(self, container_mock):
         self.builder.bind(DuckInterface, DuckA)
         self.builder.bind(QuackBehavior, Sqeak)
-        container = self.builder.build()
+        self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(Container, members)
 
@@ -78,7 +77,7 @@ class StaticContainerTest(unittest.TestCase):
     def test_binding_scope_by_string_is_ok(self, container_mock):
         self.builder.bind(DuckInterface, DuckA, "singleton")
         self.builder.bind(QuackBehavior, Sqeak)
-        container = self.builder.build()
+        self.builder.build()
         members, *_ = container_mock.call_args[0]
         self.assertIn(Container, members)
 

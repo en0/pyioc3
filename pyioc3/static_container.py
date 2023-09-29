@@ -64,15 +64,11 @@ class StaticContainer(Container):
 
     """
 
-    def __init__(
-        self,
-        bound_members: Dict[Type[PROVIDER_T], BoundMember]
-    ):
+    def __init__(self, bound_members: Dict[Type[PROVIDER_T], BoundMember]):
         self._singletons = PersistentScope()
         self._bound_members = bound_members
 
     def _build_scope(self, requested_member: BoundMember):
-
         # Build a scope using a post-order traversal of the
         # dependency tree.  This will guarantee the scope has
         # all dependencies for each object it is given to build.
@@ -109,9 +105,7 @@ class StaticContainer(Container):
         try:
             member = self._bound_members[annotation]
         except KeyError:
-            raise _MemberNotBoundErrorAsKeyError(
-                f"{annotation} is not bound."
-            )
+            raise _MemberNotBoundErrorAsKeyError(f"{annotation} is not bound.")
         else:
             scope = self._build_scope(member)
             return scope.get_instance_of(member)

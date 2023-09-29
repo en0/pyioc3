@@ -25,6 +25,7 @@ class ValueAsImplAdapter:
         result = value_adapter()  # result will be 42
         ```
     """
+
     def __init__(self, value):
         self._value = value
 
@@ -110,4 +111,3 @@ class FactoryAsImplAdapter:
 
     def __call__(self, ctx: Container):
         return self._fn(ctx)
-

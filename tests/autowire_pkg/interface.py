@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 
 
 class GreeterInterface(ABC):
-
     @abstractmethod
     def greet(self, name: str = None) -> str:
         ...
@@ -14,11 +13,9 @@ class GreeterInterface(ABC):
 
 
 class FormatterInterface(ABC):
-
     @abstractmethod
     def format(self, name: str) -> str:
         ...
 
 
 FormatterFactory: TypeAlias = Callable[[str], FormatterInterface]
-

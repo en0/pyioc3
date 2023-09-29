@@ -6,9 +6,9 @@ from .interface import GreeterInterface, FormatterFactory, FormatterInterface
 class GreeterOpts(NamedTuple):
     default_name: str
 
+
 @bind(GreeterInterface)
 class Greeter(GreeterInterface):
-
     def __init__(
         self,
         formatter_factory: FormatterFactory,

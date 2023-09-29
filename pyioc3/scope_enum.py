@@ -37,6 +37,7 @@ class ScopeEnum(Enum):
           to the `from_string` method.
 
     """
+
     TRANSIENT = 1
     REQUESTED = 2
     SINGLETON = 3

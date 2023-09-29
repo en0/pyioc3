@@ -3,6 +3,7 @@ from .bound_member import BoundMember
 from .interface import Scope, PROVIDER_T
 from .scope_enum import ScopeEnum
 
+
 class PersistentScope(Scope):
     """
     PersistentScope is an implementation of the Scope interface for managing
@@ -216,7 +217,8 @@ class ScopeContainer:
         self._scopes = {
             ScopeEnum.SINGLETON: singleton,
             ScopeEnum.REQUESTED: PersistentScope(),
-            ScopeEnum.TRANSIENT: TransientScope()}
+            ScopeEnum.TRANSIENT: TransientScope(),
+        }
 
     def _create_instance(self, member: BoundMember) -> PROVIDER_T:
         args = list()

@@ -66,19 +66,24 @@ class FlockInterface(Generic[DuckType]):
 class FlockOfDucks(FlockInterface[DuckInterface]):
     def __init__(self, ducka: DuckA, duckb: DuckB):
         self._ducks = [ducka, duckb]
+
     def __iter__(self) -> DuckInterface:
         return iter(self._ducks)
 
+
 class Singleton(type):
     _instances = None
+
     def __call__(self, *args, **kwargs):
         if not self._instances:
             self._instances = super().__call__(*args, **kwargs)
         return self._instances
 
+
 class MasterDuck(Singleton):
     def __init__(self, quack: QuackBehavior):
         pass
+
 
 class MetaMasterDuck(metaclass=Singleton):
     def __init__(self, quack: QuackBehavior):

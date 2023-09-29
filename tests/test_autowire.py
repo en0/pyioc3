@@ -1,4 +1,4 @@
-from unittest import TestCase, skip
+from unittest import TestCase
 from pyioc3 import ScopeEnum
 from pyioc3.errors import AutoWireError
 from pyioc3.autowire import bind, bind_factory, AutoWireContainerBuilder
@@ -6,38 +6,40 @@ from pyioc3.interface import ProviderBinding, FactoryBinding
 
 
 class AutoWireDecoratorTests(TestCase):
-
     def setUp(self):
         AutoWireContainerBuilder._staged_bindings = []
 
     def test_binding_decorator_stages_binding_with_defaults(self):
-
         @bind()
         class MyClass:
             ...
 
-        self.assertListEqual(AutoWireContainerBuilder._staged_bindings, [
-            (
-                "tests.test_autowire",
-                ProviderBinding(MyClass, MyClass, ScopeEnum.TRANSIENT, None)
-            ),
-        ])
+        self.assertListEqual(
+            AutoWireContainerBuilder._staged_bindings,
+            [
+                (
+                    "tests.test_autowire",
+                    ProviderBinding(MyClass, MyClass, ScopeEnum.TRANSIENT, None),
+                ),
+            ],
+        )
 
     def test_binding_decorator_sets_scope(self):
-
         @bind(scope="SINGLETON")
         class MyClass:
             ...
 
-        self.assertListEqual(AutoWireContainerBuilder._staged_bindings, [
-            (
-                "tests.test_autowire",
-                ProviderBinding(MyClass, MyClass, "SINGLETON", None),
-            )
-        ])
+        self.assertListEqual(
+            AutoWireContainerBuilder._staged_bindings,
+            [
+                (
+                    "tests.test_autowire",
+                    ProviderBinding(MyClass, MyClass, "SINGLETON", None),
+                )
+            ],
+        )
 
     def test_binding_decorator_sets_annotation(self):
-
         class MyClassInterface:
             ...
 
@@ -45,15 +47,19 @@ class AutoWireDecoratorTests(TestCase):
         class MyClass:
             ...
 
-        self.assertListEqual(AutoWireContainerBuilder._staged_bindings, [
-            (
-                "tests.test_autowire",
-                ProviderBinding(MyClassInterface, MyClass, ScopeEnum.TRANSIENT, None),
-            )
-        ])
+        self.assertListEqual(
+            AutoWireContainerBuilder._staged_bindings,
+            [
+                (
+                    "tests.test_autowire",
+                    ProviderBinding(
+                        MyClassInterface, MyClass, ScopeEnum.TRANSIENT, None
+                    ),
+                )
+            ],
+        )
 
     def test_binding_decorator_stages_binding_with_on_activate(self):
-
         def my_activator(x):
             return x
 
@@ -61,42 +67,52 @@ class AutoWireDecoratorTests(TestCase):
         class MyClass:
             ...
 
-        self.assertListEqual(AutoWireContainerBuilder._staged_bindings, [
-            (
-                "tests.test_autowire",
-                ProviderBinding(MyClass, MyClass, ScopeEnum.TRANSIENT, my_activator),
-            )
-        ])
+        self.assertListEqual(
+            AutoWireContainerBuilder._staged_bindings,
+            [
+                (
+                    "tests.test_autowire",
+                    ProviderBinding(
+                        MyClass, MyClass, ScopeEnum.TRANSIENT, my_activator
+                    ),
+                )
+            ],
+        )
 
     def test_binding_factory_decorator_stages_binding_with_defaults(self):
         @bind_factory("MyFactory")
         def my_factory(ctx):
             def wrapped(foo):
                 ...
+
             return wrapped
-        self.assertListEqual(AutoWireContainerBuilder._staged_bindings, [
-            (
-                "tests.test_autowire",
-                FactoryBinding(my_factory, "MyFactory"),
-            )
-        ])
+
+        self.assertListEqual(
+            AutoWireContainerBuilder._staged_bindings,
+            [
+                (
+                    "tests.test_autowire",
+                    FactoryBinding(my_factory, "MyFactory"),
+                )
+            ],
+        )
 
     def test_binding_factory_requires_annotation(self):
         with self.assertRaises(TypeError):
+
             @bind_factory()
             def my_factory(ctx):
                 def wrapped(foo):
                     ...
-            return wrapped
+
+                return wrapped
 
 
 class AutoWireDiscoveryTests(TestCase):
-
     def setUp(self):
         AutoWireContainerBuilder._staged_bindings = []
 
     def test_autowire_can_build_simple_module(self):
-
         output = []
 
         class QuackInterface:
@@ -112,6 +128,7 @@ class AutoWireDiscoveryTests(TestCase):
         class Duck:
             def __init__(self, quack: QuackInterface) -> None:
                 self._quack = quack
+
             def quack(self) -> None:
                 self._quack.quack()
 
@@ -124,6 +141,7 @@ class AutoWireDiscoveryTests(TestCase):
     def test_autowire_can_build_from_submodules(self):
         from tests.autowire_pkg.greeter import GreeterOpts
         from tests.autowire_pkg.interface import GreeterInterface
+
         container = (
             AutoWireContainerBuilder("tests.autowire_pkg", "tests.autowire_pkg.script")
             .bind_constant(GreeterOpts, GreeterOpts(default_name="World"))
@@ -137,7 +155,6 @@ class AutoWireDiscoveryTests(TestCase):
         self.assertEqual(greeter.greet(), "Hola, Mundo!")
 
     def test_autowire_raises_on_duplicates(self):
-
         class QuackInterface:
             def quack(self) -> None:
                 ...
@@ -158,4 +175,4 @@ class AutoWireDiscoveryTests(TestCase):
                 ...
 
         with self.assertRaises(AutoWireError):
-            container = AutoWireContainerBuilder("tests.test_autowire").build()
+            AutoWireContainerBuilder("tests.test_autowire").build()

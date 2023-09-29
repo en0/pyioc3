@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from typing import (
     Callable,
-    Dict,
     Generic,
     List,
     Optional,
@@ -18,6 +19,7 @@ from .interface import (
     ProviderBinding,
     TARGET_T,
 )
+
 
 class BuilderBase(Generic[TARGET_T]):
     """Base class for building instances with dependency injection.
@@ -72,7 +74,7 @@ class BuilderBase(Generic[TARGET_T]):
         implementation: Optional[Type[PROVIDER_T]] = None,
         scope: Optional[Union[str, ScopeEnum]] = None,
         on_activate: Optional[Callable[[PROVIDER_T], PROVIDER_T]] = None,
-    ) -> "BuilderABC(Generic[BUILDER_T])":
+    ) -> BuilderBase(Generic[PROVIDER_T]):
         """
         Register a provider for dependency injection.
 
@@ -84,7 +86,7 @@ class BuilderBase(Generic[TARGET_T]):
             on_activate: An optional activation callback.
 
         Returns:
-            BuilderABC: The builder instance.
+            BuilderBase: The builder instance.
         """
         self._container_builder.bind(
             annotation=annotation,
@@ -98,7 +100,7 @@ class BuilderBase(Generic[TARGET_T]):
         self,
         annotation: Type[PROVIDER_T],
         value: PROVIDER_T,
-    ) -> "BuilderABC(Generic[BUILDER_T])":
+    ) -> BuilderBase(Generic[PROVIDER_T]):
         """
         Register a constant for dependency injection.
 
@@ -107,19 +109,16 @@ class BuilderBase(Generic[TARGET_T]):
             value: The constant value.
 
         Returns:
-            BuilderABC: The builder instance.
+            BuilderBase: The builder instance.
         """
-        self._container_builder.bind_constant(
-            annotation=annotation,
-            value=value
-        )
+        self._container_builder.bind_constant(annotation=annotation, value=value)
         return self
 
     def using_factory(
         self,
         annotation: FACTORY_T,
         factory: Callable[[Container], FACTORY_T],
-    ) -> "BuilderABC(Generic[BUILDER_T])":
+    ) -> BuilderBase(Generic[PROVIDER_T]):
         """
         Register a factory function for dependency injection.
 
@@ -128,12 +127,9 @@ class BuilderBase(Generic[TARGET_T]):
             factory: The factory function.
 
         Returns:
-            BuilderABC: The builder instance.
+            BuilderBase: The builder instance.
         """
-        self._container_builder.bind_factory(
-            annotation=annotation,
-            factory=factory
-        )
+        self._container_builder.bind_factory(annotation=annotation, factory=factory)
         return self
 
     def build(self) -> TARGET_T:
@@ -144,4 +140,3 @@ class BuilderBase(Generic[TARGET_T]):
             TARGET_T: The built instance.
         """
         return self._container_builder.build().get(self._target_t)
-

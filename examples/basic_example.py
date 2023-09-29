@@ -5,12 +5,14 @@ from pyioc3 import StaticContainerBuilder
 
 class QuackBehavior(metaclass=ABCMeta):
     @abstractmethod
-    def do_quack(self): raise NotImplementedError()
+    def do_quack(self):
+        raise NotImplementedError()
 
 
 class Duck(metaclass=ABCMeta):
     @abstractmethod
-    def quack(self): raise NotImplementedError()
+    def quack(self):
+        raise NotImplementedError()
 
 
 class Squeak(QuackBehavior):
@@ -25,11 +27,9 @@ class RubberDucky(Duck):
     def quack(self):
         self._quack_behavior.do_quack()
 
+
 ioc = (
-    StaticContainerBuilder()
-    .bind(Duck, RubberDucky)
-    .bind(QuackBehavior, Squeak)
-    .build()
+    StaticContainerBuilder().bind(Duck, RubberDucky).bind(QuackBehavior, Squeak).build()
 )
 
 rubber_duck = ioc.get(Duck)

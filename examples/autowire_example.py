@@ -14,6 +14,7 @@ class Duck:
     def quack(self):
         self._quack.quack()
 
+
 @bind(QuackProvider)
 class Squeak(QuackProvider):
     def quack(self):
