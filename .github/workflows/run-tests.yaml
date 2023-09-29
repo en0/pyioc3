@@ -7,19 +7,26 @@ on:
 
 jobs:
   unittest:
+
     strategy:
+
       fail-fast: false
       matrix:
-        #os: ubuntu-latest, windows-latest, macos-latest
-        os: [ "ubuntu-latest" ]
-        python-version: [ "3.8" ]
-          #- "3.8"
-          #- "3.9"
-          #- "3.10"
-          #- "3.11"
-          #- "3.12-dev"
-          #- "pypy-3.8"
-          #- "pypy-3.9"
+
+        os:
+        - ubuntu-latest
+        - windows-latest
+        - macos-latest
+
+        python-version:
+        - 3.8
+        - 3.9
+        - 3.10
+        - 3.11
+        - 3.12-dev
+        - pypy-3.8
+        - pypy-3.9
+
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -37,13 +44,16 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest black
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
     - name: Check Styles
       run: |
         black --check tests pyioc3 examples
+
     - name: Lint with flake8
       run: |
         flake8 pyioc3 tests examples --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 pyioc3 tests examples --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+
     - name: Test with pytest
       run: |
         pytest
