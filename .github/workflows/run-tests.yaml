@@ -1,9 +1,15 @@
 name: Run Tests
+
 on:
+
   push:
-    branches: [ "master" ]
+    branches:
+      - "master"
+      - "rc/**"
+
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - "master"
 
 jobs:
   unittest:
@@ -26,6 +32,7 @@ jobs:
         - "3.12-dev"
         - "pypy-3.8"
         - "pypy-3.9"
+        - "pypy-3.10"
 
     runs-on: ${{ matrix.os }}
 
