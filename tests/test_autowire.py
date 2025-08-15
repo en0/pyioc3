@@ -11,8 +11,7 @@ class AutoWireDecoratorTests(TestCase):
 
     def test_binding_decorator_stages_binding_with_defaults(self):
         @bind()
-        class MyClass:
-            ...
+        class MyClass: ...
 
         self.assertListEqual(
             AutoWireContainerBuilder._staged_bindings,
@@ -26,8 +25,7 @@ class AutoWireDecoratorTests(TestCase):
 
     def test_binding_decorator_sets_scope(self):
         @bind(scope="SINGLETON")
-        class MyClass:
-            ...
+        class MyClass: ...
 
         self.assertListEqual(
             AutoWireContainerBuilder._staged_bindings,
@@ -40,12 +38,10 @@ class AutoWireDecoratorTests(TestCase):
         )
 
     def test_binding_decorator_sets_annotation(self):
-        class MyClassInterface:
-            ...
+        class MyClassInterface: ...
 
         @bind(MyClassInterface)
-        class MyClass:
-            ...
+        class MyClass: ...
 
         self.assertListEqual(
             AutoWireContainerBuilder._staged_bindings,
@@ -64,8 +60,7 @@ class AutoWireDecoratorTests(TestCase):
             return x
 
         @bind(on_activate=my_activator)
-        class MyClass:
-            ...
+        class MyClass: ...
 
         self.assertListEqual(
             AutoWireContainerBuilder._staged_bindings,
@@ -82,8 +77,7 @@ class AutoWireDecoratorTests(TestCase):
     def test_binding_factory_decorator_stages_binding_with_defaults(self):
         @bind_factory("MyFactory")
         def my_factory(ctx):
-            def wrapped(foo):
-                ...
+            def wrapped(foo): ...
 
             return wrapped
 
@@ -102,8 +96,7 @@ class AutoWireDecoratorTests(TestCase):
 
             @bind_factory()
             def my_factory(ctx):
-                def wrapped(foo):
-                    ...
+                def wrapped(foo): ...
 
                 return wrapped
 
@@ -156,23 +149,19 @@ class AutoWireDiscoveryTests(TestCase):
 
     def test_autowire_raises_on_duplicates(self):
         class QuackInterface:
-            def quack(self) -> None:
-                ...
+            def quack(self) -> None: ...
 
         @bind(QuackInterface)
         class Squeak(QuackInterface):
-            def quack(self) -> None:
-                ...
+            def quack(self) -> None: ...
 
         @bind(QuackInterface)
         class Honk(QuackInterface):
-            def quack(self) -> None:
-                ...
+            def quack(self) -> None: ...
 
         @bind()
         class Duck:
-            def __init__(self, quack: QuackInterface) -> None:
-                ...
+            def __init__(self, quack: QuackInterface) -> None: ...
 
         with self.assertRaises(AutoWireError):
             AutoWireContainerBuilder("tests.test_autowire").build()

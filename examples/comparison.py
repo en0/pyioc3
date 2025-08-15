@@ -5,8 +5,7 @@ from contextlib import contextmanager
 class Stereo(ABC):
     @abstractmethod
     @contextmanager
-    def play(self):
-        ...
+    def play(self): ...
 
 
 class StockStereo(ABC):
@@ -79,8 +78,7 @@ from pyioc3.builder import BuilderBase  # noqa: E402
 
 class Vehicle(ABC):
     @abstractmethod
-    def drive_to_work(self):
-        ...
+    def drive_to_work(self): ...
 
 
 class VehicleBuilder(BuilderBase[Vehicle]):

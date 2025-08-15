@@ -8,8 +8,7 @@ from pyioc3.interface import ProviderBinding, ConstantBinding, FactoryBinding
 GreeterFactory = Callable[[str], str]
 
 
-class Foo:
-    ...
+class Foo: ...
 
 
 class FooBuilder(BuilderBase[Foo]):

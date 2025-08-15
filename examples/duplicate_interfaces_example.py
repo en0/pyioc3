@@ -4,6 +4,7 @@ How to deal with types that provide the same interface.
 This gets very close to the service lookup pattern so it should be
 avoided, However, the following is a decent workaround.
 """
+
 from abc import ABC, abstractmethod
 from typing import Callable, TypeAlias
 
