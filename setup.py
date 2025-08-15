@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="pyioc3",
-    version="1.6.2",
+    version="1.6.3",
     description="Python IOC Container",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -20,6 +20,8 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

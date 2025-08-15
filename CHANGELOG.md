@@ -1,3 +1,9 @@
+## 2025-08-15 Ian Laird <irlaird@gmail.com>
+
+Contributions for release 1.6.3
+
+- Adding support flag for python 3.11, 3.12.
+
 ## 2023-09-28 Ian Laird <irlaird@gmail.com>
 
 Contributions for release 1.6.1
