@@ -35,8 +35,6 @@ jobs:
         - "pypy-3.9"
         - "pypy-3.10"
         - "pypy-3.11"
-        - "pypy-3.12"
-        - "pypy-3.13"
 
     runs-on: ${{ matrix.os }}
 
